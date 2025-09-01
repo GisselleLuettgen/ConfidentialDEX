@@ -1,0 +1,28 @@
+{
+  "name": "zama-confidential-fundpad",
+  "version": "1.0.0",
+  "description": "A confidential fundraising and DEX platform using Zama FHE protocol",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "node": "npx hardhat node",
+    "deploy": "npx hardhat ignition deploy ./ignition/modules/Deploy.js --network sepolia",
+    "deploy:sepolia": "MNEMONIC=\"pool grab screen stick subject use issue retire live merry universe sing\" npx hardhat ignition deploy ./ignition/modules/Deploy.js --network sepolia",
+    "frontend:install": "cd frontend && npm install",
+    "frontend:start": "cd frontend && SKIP_PREFLIGHT_CHECK=true DANGEROUSLY_DISABLE_HOST_CHECK=true PORT=3022 npm start",
+    "start": "npm run frontend:start"
+  },
+  "keywords": ["fhe", "zama", "defi", "fundraising", "dex", "privacy"],
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "@nomicfoundation/hardhat-verify": "^3.0.0",
+    "@fhevm/solidity": "^0.7.0",
+    "@openzeppelin/contracts": "^5.4.0",
+    "hardhat": "^3.0.1",
+    "ethers": "^6.15.0"
+  }
+}

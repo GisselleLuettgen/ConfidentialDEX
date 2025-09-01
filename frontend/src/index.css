@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+  min-height: 100vh;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.glass-card {
+  @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl;
+}
+
+.neon-border {
+  @apply border border-crypto-blue/50 shadow-[0_0_20px_rgba(59,130,246,0.3)];
+}
+
+.gradient-text {
+  @apply bg-gradient-to-r from-crypto-blue to-crypto-purple bg-clip-text text-transparent;
+}
+
+.btn-primary {
+  @apply bg-gradient-to-r from-crypto-blue to-crypto-purple text-white font-semibold py-3 px-6 rounded-xl 
+         hover:shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all duration-300 transform hover:scale-105;
+}
+
+.btn-secondary {
+  @apply glass-card text-white font-semibold py-3 px-6 rounded-xl border border-white/20
+         hover:bg-white/10 transition-all duration-300;
+}
+
+.input-field {
+  @apply glass-card text-white placeholder-gray-400 py-3 px-4 rounded-xl border border-white/20
+         focus:border-crypto-blue focus:ring-2 focus:ring-crypto-blue/20 transition-all duration-300;
+}
+
+.crypto-pattern {
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%);
+}
+
+.floating-animation {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+}

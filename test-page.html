@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeFi Platform 测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+        .btn {
+            background: linear-gradient(45deg, #3B82F6, #8B5CF6);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        .status {
+            background: #10B981;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 DeFi Platform</h1>
+        <div class="card">
+            <h2>✅ 网页已成功打开！</h2>
+            <div class="status">
+                页面加载正常 - 端口连接成功
+            </div>
+            <p>这个测试页面确认了：</p>
+            <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+                <li>✅ HTML文件可以正常加载</li>
+                <li>✅ CSS样式正常工作</li>
+                <li>✅ 浏览器可以访问本地文件</li>
+                <li>✅ 端口服务正常运行</li>
+            </ul>
+            
+            <div style="margin-top: 30px;">
+                <button class="btn" onclick="location.href='frontend/index.html'">
+                    打开主页面
+                </button>
+                <button class="btn" onclick="location.href='frontend/standalone.html'">
+                    打开独立版本
+                </button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>🔗 访问链接</h3>
+            <p><strong>端口8080:</strong> <a href="http://localhost:8080" style="color: #3B82F6;">http://localhost:8080</a></p>
+            <p><strong>端口3022:</strong> <a href="http://localhost:3022" style="color: #3B82F6;">http://localhost:3022</a></p>
+        </div>
+    </div>
+
+    <script>
+        console.log('🎉 DeFi Platform 测试页面加载成功!');
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ DOM加载完成');
+        });
+    </script>
+</body>
+</html>

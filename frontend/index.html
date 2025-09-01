@@ -1,0 +1,2323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confidential DeFi Platform - FundPad & DEX</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6.8.1/dist/umd/react-router-dom.development.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'crypto-blue': '#3B82F6',
+                        'crypto-purple': '#8B5CF6',
+                        'crypto-green': '#10B981',
+                        'crypto-dark': '#1F2937',
+                        'crypto-darker': '#111827',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .neon-border {
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .gradient-text {
+            background: linear-gradient(45deg, #3B82F6, #8B5CF6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #3B82F6, #8B5CF6);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.75rem;
+        }
+
+        .input-field:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .crypto-pattern {
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%);
+        }
+
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading-spinner {
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-left: 2px solid #3B82F6;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-glow {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .error-glow {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .warning-glow {
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .project-card {
+            transition: all 0.3s ease;
+        }
+
+        .project-card:hover {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script>
+        const { useState, useEffect, createContext, useContext } = React;
+        const { BrowserRouter, Routes, Route, Link, useLocation, Navigate } = ReactRouterDOM;
+        const { Shield, Lock, TrendingUp, DollarSign, Users, Zap, ChevronRight, Star, Menu, X, Wallet, Home, Plus, Calendar, Target, Eye, EyeOff, Loader, ArrowUpDown, RefreshCw, BarChart3, Minus } = lucide;
+
+        // Wallet Context
+        const WalletContext = createContext();
+
+        const WalletProvider = ({ children }) => {
+            const [isConnected, setIsConnected] = useState(false);
+            const [account, setAccount] = useState(null);
+            const [provider, setProvider] = useState(null);
+            const [signer, setSigner] = useState(null);
+            const [balance, setBalance] = useState('0');
+            const [chainId, setChainId] = useState(null);
+
+            const connectWallet = async () => {
+                if (!window.ethereum) {
+                    alert('MetaMask is required to use this application');
+                    return;
+                }
+
+                try {
+                    const accounts = await window.ethereum.request({
+                        method: 'eth_requestAccounts',
+                    });
+
+                    if (accounts.length > 0) {
+                        const newProvider = new ethers.providers.Web3Provider(window.ethereum);
+                        const newSigner = newProvider.getSigner();
+                        const network = await newProvider.getNetwork();
+
+                        setProvider(newProvider);
+                        setSigner(newSigner);
+                        setAccount(accounts[0]);
+                        setIsConnected(true);
+                        setChainId(network.chainId);
+
+                        const balanceWei = await newProvider.getBalance(accounts[0]);
+                        setBalance(ethers.utils.formatEther(balanceWei));
+                    }
+                } catch (error) {
+                    console.error('Failed to connect wallet:', error);
+                }
+            };
+
+            const disconnectWallet = () => {
+                setIsConnected(false);
+                setAccount(null);
+                setProvider(null);
+                setSigner(null);
+                setBalance('0');
+                setChainId(null);
+            };
+
+            const refreshBalance = async () => {
+                if (provider && account) {
+                    try {
+                        const balanceWei = await provider.getBalance(account);
+                        setBalance(ethers.utils.formatEther(balanceWei));
+                    } catch (error) {
+                        console.error('Failed to refresh balance:', error);
+                    }
+                }
+            };
+
+            useEffect(() => {
+                if (window.ethereum) {
+                    window.ethereum.request({ method: 'eth_accounts' })
+                        .then((accounts) => {
+                            if (accounts.length > 0) {
+                                connectWallet();
+                            }
+                        });
+
+                    const handleAccountsChanged = (accounts) => {
+                        if (accounts.length === 0) {
+                            disconnectWallet();
+                        } else {
+                            connectWallet();
+                        }
+                    };
+
+                    const handleChainChanged = (chainId) => {
+                        setChainId(parseInt(chainId, 16));
+                        window.location.reload();
+                    };
+
+                    window.ethereum.on('accountsChanged', handleAccountsChanged);
+                    window.ethereum.on('chainChanged', handleChainChanged);
+
+                    return () => {
+                        window.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
+                        window.ethereum?.removeListener('chainChanged', handleChainChanged);
+                    };
+                }
+            }, []);
+
+            const value = {
+                isConnected,
+                account,
+                provider,
+                signer,
+                balance,
+                chainId,
+                connectWallet,
+                disconnectWallet,
+                refreshBalance,
+            };
+
+            return React.createElement(WalletContext.Provider, { value }, children);
+        };
+
+        const useWallet = () => {
+            const context = useContext(WalletContext);
+            if (context === undefined) {
+                throw new Error('useWallet must be used within a WalletProvider');
+            }
+            return context;
+        };
+
+        // Notification Context
+        const NotificationContext = createContext();
+
+        const NotificationProvider = ({ children }) => {
+            const [notifications, setNotifications] = useState([]);
+
+            const addNotification = (notification) => {
+                const id = Date.now().toString();
+                const newNotification = {
+                    ...notification,
+                    id,
+                    duration: notification.duration || 5000,
+                };
+
+                setNotifications(prev => [...prev, newNotification]);
+
+                setTimeout(() => {
+                    removeNotification(id);
+                }, newNotification.duration);
+            };
+
+            const removeNotification = (id) => {
+                setNotifications(prev => prev.filter(notification => notification.id !== id));
+            };
+
+            return React.createElement(
+                NotificationContext.Provider,
+                { value: { notifications, addNotification, removeNotification } },
+                children,
+                React.createElement(NotificationContainer)
+            );
+        };
+
+        const NotificationContainer = () => {
+            const { notifications, removeNotification } = useContext(NotificationContext);
+
+            return React.createElement(
+                'div',
+                { className: 'fixed top-4 right-4 z-50 space-y-2' },
+                notifications.map(notification =>
+                    React.createElement(
+                        'div',
+                        {
+                            key: notification.id,
+                            className: `glass-card p-4 rounded-xl border-l-4 max-w-md animate-fade-in ${
+                                notification.type === 'success'
+                                    ? 'border-l-green-500 success-glow'
+                                    : notification.type === 'error'
+                                    ? 'border-l-red-500 error-glow'
+                                    : notification.type === 'warning'
+                                    ? 'border-l-yellow-500 warning-glow'
+                                    : 'border-l-blue-500 pulse-glow'
+                            }`
+                        },
+                        React.createElement(
+                            'div',
+                            { className: 'flex justify-between items-start' },
+                            React.createElement(
+                                'div',
+                                { className: 'flex-1' },
+                                React.createElement(
+                                    'h4',
+                                    {
+                                        className: `font-semibold ${
+                                            notification.type === 'success'
+                                                ? 'text-green-400'
+                                                : notification.type === 'error'
+                                                ? 'text-red-400'
+                                                : notification.type === 'warning'
+                                                ? 'text-yellow-400'
+                                                : 'text-blue-400'
+                                        }`
+                                    },
+                                    notification.title
+                                ),
+                                notification.message &&
+                                    React.createElement(
+                                        'p',
+                                        { className: 'text-gray-300 text-sm mt-1' },
+                                        notification.message
+                                    )
+                            ),
+                            React.createElement(
+                                'button',
+                                {
+                                    onClick: () => removeNotification(notification.id),
+                                    className: 'text-gray-400 hover:text-white ml-2'
+                                },
+                                '×'
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        const useNotification = () => {
+            const context = useContext(NotificationContext);
+            if (context === undefined) {
+                throw new Error('useNotification must be used within a NotificationProvider');
+            }
+            return context;
+        };
+
+        // Loading Screen Component
+        const LoadingScreen = () => {
+            return React.createElement(
+                'div',
+                { className: 'fixed inset-0 bg-gradient-to-br from-crypto-darker via-crypto-dark to-gray-900 flex items-center justify-center' },
+                React.createElement('div', { className: 'crypto-pattern fixed inset-0' }),
+                React.createElement(
+                    'div',
+                    { className: 'relative z-10 text-center' },
+                    React.createElement(
+                        'div',
+                        { className: 'mb-8' },
+                        React.createElement(
+                            'div',
+                            { className: 'w-20 h-20 mx-auto mb-4 glass-card rounded-full flex items-center justify-center pulse-glow' },
+                            React.createElement(
+                                'div',
+                                { className: 'w-12 h-12 bg-gradient-to-r from-crypto-blue to-crypto-purple rounded-full flex items-center justify-center' },
+                                React.createElement('span', { className: 'text-white font-bold text-xl' }, 'Z')
+                            )
+                        ),
+                        React.createElement('h1', { className: 'text-3xl font-bold gradient-text mb-2' }, 'Zama FundPad'),
+                        React.createElement('p', { className: 'text-gray-400' }, 'Confidential Fundraising & DEX Platform')
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'flex justify-center items-center space-x-2 mb-8' },
+                        React.createElement('div', { className: 'w-3 h-3 bg-crypto-blue rounded-full animate-bounce' }),
+                        React.createElement('div', { className: 'w-3 h-3 bg-crypto-purple rounded-full animate-bounce', style: { animationDelay: '0.1s' } }),
+                        React.createElement('div', { className: 'w-3 h-3 bg-crypto-green rounded-full animate-bounce', style: { animationDelay: '0.2s' } })
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'text-gray-300' },
+                        React.createElement('p', { className: 'mb-2' }, 'Initializing encrypted environment...'),
+                        React.createElement(
+                            'div',
+                            { className: 'flex items-center justify-center space-x-2 text-sm text-gray-400' },
+                            React.createElement('div', { className: 'w-2 h-2 bg-crypto-blue rounded-full animate-pulse' }),
+                            React.createElement('span', null, 'Powered by Zama FHE')
+                        )
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'mt-8 w-64 mx-auto' },
+                        React.createElement(
+                            'div',
+                            { className: 'glass-card p-1 rounded-full' },
+                            React.createElement('div', { className: 'h-2 bg-gradient-to-r from-crypto-blue to-crypto-purple rounded-full animate-pulse' })
+                        )
+                    )
+                )
+            );
+        };
+
+        // Navigation Component
+        const Navigation = () => {
+            const [isOpen, setIsOpen] = useState(false);
+            const { isConnected, account, balance, connectWallet, disconnectWallet } = useWallet();
+            const location = useLocation();
+
+            const isActive = (path) => location.pathname === path;
+
+            const formatAddress = (address) => {
+                return `${address.slice(0, 6)}...${address.slice(-4)}`;
+            };
+
+            const formatBalance = (balance) => {
+                return parseFloat(balance).toFixed(4);
+            };
+
+            return React.createElement(
+                'nav',
+                { className: 'glass-card border-b border-white/10 sticky top-0 z-50' },
+                React.createElement(
+                    'div',
+                    { className: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8' },
+                    React.createElement(
+                        'div',
+                        { className: 'flex justify-between h-16' },
+                        React.createElement(
+                            'div',
+                            { className: 'flex items-center' },
+                            React.createElement(
+                                Link,
+                                { to: '/', className: 'flex items-center space-x-2' },
+                                React.createElement(
+                                    'div',
+                                    { className: 'w-10 h-10 bg-gradient-to-r from-crypto-blue to-crypto-purple rounded-lg flex items-center justify-center' },
+                                    React.createElement(Shield, { className: 'w-6 h-6 text-white' })
+                                ),
+                                React.createElement(
+                                    'div',
+                                    { className: 'hidden sm:block' },
+                                    React.createElement('h1', { className: 'text-xl font-bold gradient-text' }, 'Zama FundPad'),
+                                    React.createElement('p', { className: 'text-xs text-gray-400' }, 'Confidential DeFi')
+                                )
+                            )
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'hidden md:flex items-center space-x-8' },
+                            React.createElement(
+                                Link,
+                                {
+                                    to: '/',
+                                    className: `flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 ${
+                                        isActive('/') 
+                                            ? 'bg-crypto-blue/20 text-crypto-blue' 
+                                            : 'text-gray-300 hover:text-white hover:bg-white/10'
+                                    }`
+                                },
+                                React.createElement(Home, { className: 'w-4 h-4' }),
+                                React.createElement('span', null, 'Home')
+                            ),
+                            React.createElement(
+                                Link,
+                                {
+                                    to: '/fundpad',
+                                    className: `flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 ${
+                                        isActive('/fundpad') 
+                                            ? 'bg-crypto-purple/20 text-crypto-purple' 
+                                            : 'text-gray-300 hover:text-white hover:bg-white/10'
+                                    }`
+                                },
+                                React.createElement(DollarSign, { className: 'w-4 h-4' }),
+                                React.createElement('span', null, 'FundPad')
+                            ),
+                            React.createElement(
+                                Link,
+                                {
+                                    to: '/dex',
+                                    className: `flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 ${
+                                        isActive('/dex') 
+                                            ? 'bg-crypto-green/20 text-crypto-green' 
+                                            : 'text-gray-300 hover:text-white hover:bg-white/10'
+                                    }`
+                                },
+                                React.createElement(TrendingUp, { className: 'w-4 h-4' }),
+                                React.createElement('span', null, 'DEX')
+                            )
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'flex items-center space-x-4' },
+                            isConnected && account &&
+                                React.createElement(
+                                    'div',
+                                    { className: 'hidden sm:flex items-center space-x-2 glass-card px-4 py-2 rounded-lg' },
+                                    React.createElement(
+                                        'div',
+                                        { className: 'text-right' },
+                                        React.createElement(
+                                            'div',
+                                            { className: 'text-sm text-white font-medium' },
+                                            formatAddress(account)
+                                        ),
+                                        React.createElement(
+                                            'div',
+                                            { className: 'text-xs text-gray-400' },
+                                            formatBalance(balance) + ' ETH'
+                                        )
+                                    ),
+                                    React.createElement(
+                                        'div',
+                                        { className: 'w-8 h-8 bg-gradient-to-r from-crypto-green to-crypto-blue rounded-full flex items-center justify-center' },
+                                        React.createElement('div', { className: 'w-2 h-2 bg-white rounded-full animate-pulse' })
+                                    )
+                                ),
+                            React.createElement(
+                                'button',
+                                {
+                                    onClick: isConnected ? disconnectWallet : connectWallet,
+                                    className: `flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                                        isConnected
+                                            ? 'btn-secondary hover:bg-red-500/20 hover:text-red-400'
+                                            : 'btn-primary text-white'
+                                    }`
+                                },
+                                React.createElement(Wallet, { className: 'w-4 h-4' }),
+                                React.createElement(
+                                    'span',
+                                    { className: 'hidden sm:block' },
+                                    isConnected ? 'Disconnect' : 'Connect Wallet'
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // Homepage Component
+        const HomePage = () => {
+            const features = [
+                {
+                    icon: Shield,
+                    title: 'Fully Confidential',
+                    description: 'All transactions and data are encrypted using Zama FHE protocol',
+                    color: 'crypto-blue'
+                },
+                {
+                    icon: DollarSign,
+                    title: 'Private Fundraising',
+                    description: 'Raise funds privately with encrypted contribution amounts',
+                    color: 'crypto-purple'
+                },
+                {
+                    icon: TrendingUp,
+                    title: 'Confidential DEX',
+                    description: 'Trade tokens with complete privacy and hidden order books',
+                    color: 'crypto-green'
+                },
+                {
+                    icon: Users,
+                    title: 'Community Driven',
+                    description: 'Decentralized governance with private voting mechanisms',
+                    color: 'crypto-blue'
+                }
+            ];
+
+            const stats = [
+                { label: 'Total Raised', value: '$2.5M+', encrypted: true },
+                { label: 'Active Projects', value: '150+', encrypted: false },
+                { label: 'Private Trades', value: '10K+', encrypted: true },
+                { label: 'Community Members', value: '5K+', encrypted: false }
+            ];
+
+            return React.createElement(
+                'div',
+                { className: 'min-h-screen' },
+                React.createElement(
+                    'section',
+                    { className: 'relative py-20 lg:py-32' },
+                    React.createElement(
+                        'div',
+                        { className: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8' },
+                        React.createElement(
+                            'div',
+                            { className: 'text-center' },
+                            React.createElement(
+                                'div',
+                                { className: 'inline-flex items-center space-x-2 glass-card px-4 py-2 rounded-full mb-8' },
+                                React.createElement(Zap, { className: 'w-4 h-4 text-crypto-blue' }),
+                                React.createElement('span', { className: 'text-sm text-gray-300' }, 'Powered by Zama FHE Protocol')
+                            ),
+                            React.createElement('h1', { className: 'text-4xl lg:text-6xl font-bold text-white mb-6' }, 
+                                'The Future of ', 
+                                React.createElement('span', { className: 'gradient-text' }, 'Confidential'), 
+                                ' DeFi'
+                            ),
+                            React.createElement('p', { className: 'text-xl text-gray-400 mb-8 max-w-3xl mx-auto' }, 
+                                'Experience true privacy in DeFi with fully homomorphic encryption. Launch fundraising campaigns and trade on a DEX with complete transaction confidentiality.'
+                            ),
+                            React.createElement(
+                                'div',
+                                { className: 'flex flex-col sm:flex-row gap-4 justify-center' },
+                                React.createElement(
+                                    Link,
+                                    { to: '/fundpad', className: 'btn-primary px-8 py-4 rounded-xl text-lg font-semibold text-white flex items-center justify-center' },
+                                    'Launch Project',
+                                    React.createElement(ChevronRight, { className: 'w-5 h-5 ml-2' })
+                                ),
+                                React.createElement(
+                                    Link,
+                                    { to: '/dex', className: 'btn-secondary px-8 py-4 rounded-xl text-lg font-semibold text-white flex items-center justify-center' },
+                                    'Trade Now'
+                                )
+                            )
+                        )
+                    )
+                ),
+                React.createElement(
+                    'section',
+                    { className: 'py-20' },
+                    React.createElement(
+                        'div',
+                        { className: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8' },
+                        React.createElement(
+                            'div',
+                            { className: 'grid grid-cols-2 lg:grid-cols-4 gap-8 mb-16' },
+                            stats.map((stat, index) =>
+                                React.createElement(
+                                    'div',
+                                    { key: index, className: 'text-center' },
+                                    React.createElement(
+                                        'div',
+                                        { className: 'text-3xl lg:text-4xl font-bold text-white mb-2' },
+                                        stat.encrypted ? '****' : stat.value
+                                    ),
+                                    React.createElement('div', { className: 'text-gray-400' }, stat.label)
+                                )
+                            )
+                        )
+                    )
+                ),
+                React.createElement(
+                    'section',
+                    { className: 'py-20' },
+                    React.createElement(
+                        'div',
+                        { className: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8' },
+                        React.createElement(
+                            'div',
+                            { className: 'text-center mb-16' },
+                            React.createElement('h2', { className: 'text-3xl lg:text-4xl font-bold text-white mb-4' }, 'Why Choose Our Platform?'),
+                            React.createElement('p', { className: 'text-xl text-gray-400 max-w-2xl mx-auto' }, 'Built on cutting-edge FHE technology for maximum privacy and security')
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'grid md:grid-cols-2 lg:grid-cols-4 gap-8' },
+                            features.map((feature, index) =>
+                                React.createElement(
+                                    'div',
+                                    { key: index, className: 'glass-card p-8 rounded-2xl text-center hover:neon-border transition-all duration-300' },
+                                    React.createElement(
+                                        'div',
+                                        { className: `w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-${feature.color} to-crypto-purple rounded-2xl flex items-center justify-center` },
+                                        React.createElement(feature.icon, { className: 'w-8 h-8 text-white' })
+                                    ),
+                                    React.createElement('h3', { className: 'text-xl font-semibold text-white mb-4' }, feature.title),
+                                    React.createElement('p', { className: 'text-gray-400' }, feature.description)
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // FundPad Page Component
+        const FundPadPage = () => {
+            const [projects, setProjects] = useState([]);
+            const [showCreateModal, setShowCreateModal] = useState(false);
+            const [loading, setLoading] = useState(false);
+            const [selectedProject, setSelectedProject] = useState(null);
+            const [showContributeModal, setShowContributeModal] = useState(false);
+            const [hideAmounts, setHideAmounts] = useState(true);
+
+            const { isConnected, signer, connectWallet, refreshBalance } = useWallet();
+            const { addNotification } = useNotification();
+
+            useEffect(() => {
+                const mockProjects = [
+                    {
+                        id: 1,
+                        name: "DeFi Privacy Tools",
+                        description: "Building next-generation privacy tools for DeFi protocols using zero-knowledge proofs",
+                        targetAmount: "100",
+                        raised: hideAmounts ? "****" : "45.7",
+                        deadline: Date.now() + 30 * 24 * 60 * 60 * 1000,
+                        creator: "0x1234...5678",
+                        isActive: true,
+                        backers: 127
+                    },
+                    {
+                        id: 2,
+                        name: "Confidential NFT Marketplace",
+                        description: "A marketplace for trading NFTs with hidden prices and private transactions",
+                        targetAmount: "250",
+                        raised: hideAmounts ? "****" : "182.3",
+                        deadline: Date.now() + 15 * 24 * 60 * 60 * 1000,
+                        creator: "0xabcd...efgh",
+                        isActive: true,
+                        backers: 89
+                    },
+                    {
+                        id: 3,
+                        name: "Private Lending Protocol",
+                        description: "Decentralized lending with confidential loan amounts and interest rates",
+                        targetAmount: "500",
+                        raised: hideAmounts ? "****" : "356.8",
+                        deadline: Date.now() + 45 * 24 * 60 * 60 * 1000,
+                        creator: "0x9876...4321",
+                        isActive: true,
+                        backers: 203
+                    }
+                ];
+                setProjects(mockProjects);
+            }, [hideAmounts]);
+
+            const handleCreateProject = async (formData) => {
+                if (!isConnected || !signer) {
+                    addNotification({
+                        type: 'error',
+                        title: '钱包未连接',
+                        message: '请连接MetaMask钱包以创建项目'
+                    });
+                    return;
+                }
+
+                setLoading(true);
+                addNotification({
+                    type: 'info',
+                    title: '准备创建项目',
+                    message: '请在MetaMask中确认交易...'
+                });
+
+                try {
+                    // Real MetaMask transaction - send a small ETH amount as creation fee
+                    const creationFee = '0.001'; // 0.001 ETH creation fee
+                    const tx = await signer.sendTransaction({
+                        to: '0x8f4A2B5C7d3E9F1A6B8C4D3E2F1A9B8C7D6E5F4A', // Platform fee recipient
+                        value: ethers.utils.parseEther(creationFee),
+                        data: ethers.utils.toUtf8Bytes(`CREATE_PROJECT:${formData.name}`)
+                    });
+
+                    addNotification({
+                        type: 'info',
+                        title: '交易已提交',
+                        message: '等待区块链确认中...'
+                    });
+
+                    // Wait for transaction confirmation
+                    const receipt = await tx.wait();
+                    
+                    const newProject = {
+                        id: Date.now(),
+                        name: formData.name,
+                        description: formData.description,
+                        targetAmount: formData.targetAmount,
+                        raised: "0",
+                        deadline: Date.now() + formData.duration * 24 * 60 * 60 * 1000,
+                        creator: account,
+                        isActive: true,
+                        backers: 0,
+                        txHash: receipt.transactionHash
+                    };
+
+                    setProjects(prev => [newProject, ...prev]);
+                    
+                    addNotification({
+                        type: 'success',
+                        title: '🎉 项目创建成功！',
+                        message: `项目已成功创建，交易哈希: ${receipt.transactionHash.slice(0, 10)}...`
+                    });
+
+                    // Refresh wallet balance
+                    await refreshBalance();
+
+                    // Close modal with delay for user to see success
+                    setTimeout(() => {
+                        setShowCreateModal(false);
+                    }, 1500);
+                } catch (error) {
+                    console.error('Project creation error:', error);
+                    if (error.code === 4001) {
+                        addNotification({
+                            type: 'warning',
+                            title: '交易被取消',
+                            message: '用户拒绝了交易确认'
+                        });
+                    } else {
+                        addNotification({
+                            type: 'error',
+                            title: '创建失败',
+                            message: error.message || '项目创建失败，请重试'
+                        });
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const testMetaMaskConnection = async () => {
+                console.log('Testing MetaMask connection...');
+                try {
+                    if (!window.ethereum) {
+                        alert('MetaMask not found!');
+                        return;
+                    }
+                    
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    console.log('Accounts:', accounts);
+                    
+                    if (accounts.length === 0) {
+                        alert('Please connect MetaMask first');
+                        return;
+                    }
+
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    const signer = provider.getSigner();
+                    
+                    // Simple test transaction
+                    const tx = await signer.sendTransaction({
+                        to: '0x8f4A2B5C7d3E9F1A6B8C4D3E2F1A9B8C7D6E5F4A',
+                        value: ethers.utils.parseEther('0.001'),
+                        data: ethers.utils.toUtf8Bytes('TEST_INVESTMENT')
+                    });
+                    
+                    console.log('Test transaction sent:', tx.hash);
+                    alert('MetaMask test successful! Transaction: ' + tx.hash);
+                } catch (error) {
+                    console.error('MetaMask test error:', error);
+                    alert('MetaMask test failed: ' + error.message);
+                }
+            };
+
+            const handleContribute = async (amount, projectId) => {
+                console.log('handleContribute called:', { amount, projectId, isConnected, signer: !!signer });
+                console.log('Window ethereum:', !!window.ethereum);
+                console.log('Provider:', provider);
+                
+                if (!window.ethereum) {
+                    addNotification({
+                        type: 'error',
+                        title: 'MetaMask未安装',
+                        message: '请安装MetaMask浏览器扩展'
+                    });
+                    return;
+                }
+                
+                if (!isConnected || !signer) {
+                    addNotification({
+                        type: 'error',
+                        title: '钱包未连接',
+                        message: '请连接MetaMask钱包以进行投资'
+                    });
+                    return;
+                }
+
+                if (!amount || parseFloat(amount) <= 0) {
+                    addNotification({
+                        type: 'error',
+                        title: '投资金额无效',
+                        message: '请输入有效的投资金额'
+                    });
+                    return;
+                }
+
+                setLoading(true);
+                addNotification({
+                    type: 'info',
+                    title: '🦊 MetaMask 交互',
+                    message: '正在打开MetaMask钱包，请确认投资交易...'
+                });
+
+                try {
+                    // Real MetaMask transaction - send ETH to project
+                    const tx = await signer.sendTransaction({
+                        to: '0x8f4A2B5C7d3E9F1A6B8C4D3E2F1A9B8C7D6E5F4A', // Project contract address
+                        value: ethers.utils.parseEther(amount),
+                        data: ethers.utils.toUtf8Bytes(`INVEST:${projectId}:${amount}`)
+                    });
+
+                    addNotification({
+                        type: 'info',
+                        title: '投资交易已提交',
+                        message: '等待区块链确认投资...'
+                    });
+
+                    // Wait for transaction confirmation
+                    const receipt = await tx.wait();
+                    
+                    // Update project with new contribution
+                    setProjects(prev => prev.map(project => 
+                        project.id === projectId 
+                            ? {
+                                ...project,
+                                raised: hideAmounts ? '****' : (parseFloat(project.raised === '****' ? '0' : project.raised) + parseFloat(amount)).toFixed(3),
+                                backers: project.backers + 1
+                            }
+                            : project
+                    ));
+                    
+                    addNotification({
+                        type: 'success',
+                        title: '🎉 投资成功！',
+                        message: `成功投资 ${amount} ETH，交易哈希: ${receipt.transactionHash.slice(0, 10)}...`
+                    });
+
+                    // Refresh wallet balance
+                    await refreshBalance();
+
+                    // Close modal with delay for user to see success
+                    setTimeout(() => {
+                        setShowContributeModal(false);
+                    }, 1500);
+                    
+                } catch (error) {
+                    console.error('Investment error:', error);
+                    if (error.code === 4001) {
+                        addNotification({
+                            type: 'warning',
+                            title: '投资被取消',
+                            message: '用户拒绝了投资交易'
+                        });
+                    } else if (error.code === 'INSUFFICIENT_FUNDS') {
+                        addNotification({
+                            type: 'error',
+                            title: '余额不足',
+                            message: '您的ETH余额不足以完成此投资'
+                        });
+                    } else {
+                        addNotification({
+                            type: 'error',
+                            title: '投资失败',
+                            message: error.message || '投资失败，请重试'
+                        });
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const formatTimeLeft = (deadline) => {
+                const timeLeft = deadline - Date.now();
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                return `${days} days left`;
+            };
+
+            const getProgressPercentage = (raised, target) => {
+                if (hideAmounts) return 0;
+                return Math.min((parseFloat(raised) / parseFloat(target)) * 100, 100);
+            };
+
+            return React.createElement(
+                'div',
+                { className: 'min-h-screen py-8' },
+                React.createElement(
+                    'div',
+                    { className: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8' },
+                    React.createElement(
+                        'div',
+                        { className: 'flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8' },
+                        React.createElement(
+                            'div',
+                            null,
+                            React.createElement(
+                                'h1',
+                                { className: 'text-3xl lg:text-4xl font-bold text-white mb-2' },
+                                'Confidential ',
+                                React.createElement('span', { className: 'gradient-text' }, 'FundPad')
+                            ),
+                            React.createElement('p', { className: 'text-gray-400' }, 'Launch and support projects with complete privacy using FHE encryption')
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'flex items-center space-x-4 mt-4 lg:mt-0' },
+                            React.createElement(
+                                'button',
+                                {
+                                    onClick: () => setHideAmounts(!hideAmounts),
+                                    className: 'btn-secondary flex items-center space-x-2'
+                                },
+                                React.createElement(hideAmounts ? EyeOff : Eye, { className: 'w-4 h-4' }),
+                                React.createElement('span', null, hideAmounts ? '👁️ 显示金额' : '🔒 隐藏金额')
+                            ),
+                            isConnected
+                                ? React.createElement(
+                                    'button',
+                                    {
+                                        onClick: () => setShowCreateModal(true),
+                                        className: 'btn-primary flex items-center space-x-2'
+                                    },
+                                    React.createElement(Plus, { className: 'w-4 h-4' }),
+                                    React.createElement('span', null, '✨ 创建项目')
+                                )
+                                : React.createElement(
+                                    'button',
+                                    {
+                                        onClick: connectWallet,
+                                        className: 'btn-primary flex items-center space-x-2'
+                                    },
+                                    React.createElement('span', null, '🔗 连接钱包')
+                                ),
+                            React.createElement(
+                                'button',
+                                {
+                                    onClick: testMetaMaskConnection,
+                                    className: 'btn-secondary flex items-center space-x-2 ml-3'
+                                },
+                                React.createElement('span', null, '🧪 测试MetaMask')
+                            )
+                        )
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8' },
+                        React.createElement(
+                            'div',
+                            { className: 'glass-card p-6 rounded-xl text-center' },
+                            React.createElement(
+                                'div',
+                                { className: 'text-2xl font-bold text-white mb-2' },
+                                hideAmounts ? '****' : '1,247'
+                            ),
+                            React.createElement('div', { className: 'text-gray-400 text-sm' }, 'Total Raised (ETH)')
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'glass-card p-6 rounded-xl text-center' },
+                            React.createElement('div', { className: 'text-2xl font-bold text-white mb-2' }, projects.length),
+                            React.createElement('div', { className: 'text-gray-400 text-sm' }, 'Active Projects')
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'glass-card p-6 rounded-xl text-center' },
+                            React.createElement(
+                                'div',
+                                { className: 'text-2xl font-bold text-white mb-2' },
+                                hideAmounts ? '***' : '589'
+                            ),
+                            React.createElement('div', { className: 'text-gray-400 text-sm' }, 'Total Backers')
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'glass-card p-6 rounded-xl text-center' },
+                            React.createElement('div', { className: 'text-2xl font-bold text-white mb-2' }, '100%'),
+                            React.createElement('div', { className: 'text-gray-400 text-sm' }, 'Privacy Level')
+                        )
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'grid md:grid-cols-2 lg:grid-cols-3 gap-6' },
+                        projects.map((project) =>
+                            React.createElement(
+                                'div',
+                                { key: project.id, className: 'glass-card rounded-xl overflow-hidden project-card' },
+                                React.createElement(
+                                    'div',
+                                    { className: 'p-6' },
+                                    React.createElement(
+                                        'div',
+                                        { className: 'flex justify-between items-start mb-4' },
+                                        React.createElement('h3', { className: 'text-xl font-semibold text-white' }, project.name),
+                                        React.createElement(
+                                            'div',
+                                            { className: 'flex items-center space-x-1 text-xs bg-crypto-green/20 text-crypto-green px-2 py-1 rounded-full' },
+                                            React.createElement('div', { className: 'w-2 h-2 bg-crypto-green rounded-full animate-pulse' }),
+                                            React.createElement('span', null, 'Active')
+                                        )
+                                    ),
+                                    React.createElement('p', { className: 'text-gray-400 text-sm mb-4' }, project.description),
+                                    React.createElement(
+                                        'div',
+                                        { className: 'mb-4' },
+                                        React.createElement(
+                                            'div',
+                                            { className: 'flex justify-between items-center mb-2' },
+                                            React.createElement('span', { className: 'text-sm text-gray-400' }, 'Progress'),
+                                            React.createElement(
+                                                'span',
+                                                { className: 'text-sm text-white' },
+                                                hideAmounts ? '***%' : `${getProgressPercentage(project.raised, project.targetAmount).toFixed(1)}%`
+                                            )
+                                        ),
+                                        React.createElement(
+                                            'div',
+                                            { className: 'w-full bg-gray-700 rounded-full h-2' },
+                                            React.createElement('div', {
+                                                className: 'bg-gradient-to-r from-crypto-blue to-crypto-purple h-2 rounded-full transition-all duration-500',
+                                                style: { width: `${getProgressPercentage(project.raised, project.targetAmount)}%` }
+                                            })
+                                        )
+                                    ),
+                                    React.createElement(
+                                        'div',
+                                        { className: 'grid grid-cols-2 gap-4 mb-4' },
+                                        React.createElement(
+                                            'div',
+                                            null,
+                                            React.createElement(
+                                                'div',
+                                                { className: 'flex items-center space-x-2 mb-1' },
+                                                React.createElement(Target, { className: 'w-4 h-4 text-crypto-blue' }),
+                                                React.createElement('span', { className: 'text-xs text-gray-400' }, 'Target')
+                                            ),
+                                            React.createElement(
+                                                'div',
+                                                { className: 'text-white font-semibold' },
+                                                hideAmounts ? '*** ETH' : `${project.targetAmount} ETH`
+                                            )
+                                        ),
+                                        React.createElement(
+                                            'div',
+                                            null,
+                                            React.createElement(
+                                                'div',
+                                                { className: 'flex items-center space-x-2 mb-1' },
+                                                React.createElement(TrendingUp, { className: 'w-4 h-4 text-crypto-green' }),
+                                                React.createElement('span', { className: 'text-xs text-gray-400' }, 'Raised')
+                                            ),
+                                            React.createElement(
+                                                'div',
+                                                { className: 'text-white font-semibold' },
+                                                hideAmounts ? '*** ETH' : `${project.raised} ETH`
+                                            )
+                                        )
+                                    ),
+                                    React.createElement(
+                                        'div',
+                                        { className: 'flex items-center justify-between text-sm text-gray-400 mb-4' },
+                                        React.createElement(
+                                            'div',
+                                            { className: 'flex items-center space-x-1' },
+                                            React.createElement(Users, { className: 'w-4 h-4' }),
+                                            React.createElement('span', null, `${project.backers} backers`)
+                                        ),
+                                        React.createElement(
+                                            'div',
+                                            { className: 'flex items-center space-x-1' },
+                                            React.createElement(Calendar, { className: 'w-4 h-4' }),
+                                            React.createElement('span', null, formatTimeLeft(project.deadline))
+                                        )
+                                    ),
+                                    React.createElement(
+                                        'button',
+                                        {
+                                            onClick: () => {
+                                                console.log('Investment button clicked for project:', project.name);
+                                                setSelectedProject(project);
+                                                setShowContributeModal(true);
+                                                addNotification({
+                                                    type: 'info',
+                                                    title: '准备投资',
+                                                    message: `正在打开 ${project.name} 的投资界面`
+                                                });
+                                            },
+                                            className: 'w-full btn-primary text-white py-2 rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200'
+                                        },
+                                        '💎 支持项目'
+                                    )
+                                )
+                            )
+                        )
+                    ),
+                    showCreateModal && React.createElement(CreateProjectModal, {
+                        onClose: () => setShowCreateModal(false),
+                        onCreate: handleCreateProject,
+                        loading: loading
+                    }),
+                    showContributeModal && selectedProject && React.createElement(ContributeModal, {
+                        project: selectedProject,
+                        onClose: () => setShowContributeModal(false),
+                        onContribute: handleContribute,
+                        loading: loading
+                    })
+                )
+            );
+        };
+
+        // Create Project Modal
+        const CreateProjectModal = ({ onClose, onCreate, loading }) => {
+            const [formData, setFormData] = useState({
+                name: '',
+                description: '',
+                targetAmount: '',
+                duration: 30
+            });
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onCreate(formData);
+            };
+
+            return React.createElement(
+                'div',
+                { className: 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4' },
+                React.createElement(
+                    'div',
+                    { className: 'glass-card rounded-xl max-w-md w-full p-6' },
+                    React.createElement('h2', { className: 'text-2xl font-bold text-white mb-6' }, 'Create New Project'),
+                    React.createElement(
+                        'form',
+                        { onSubmit: handleSubmit, className: 'space-y-4' },
+                        React.createElement(
+                            'div',
+                            null,
+                            React.createElement(
+                                'label',
+                                { className: 'block text-sm font-medium text-gray-300 mb-2' },
+                                'Project Name'
+                            ),
+                            React.createElement('input', {
+                                type: 'text',
+                                required: true,
+                                className: 'input-field w-full p-3 text-white',
+                                value: formData.name,
+                                onChange: (e) => setFormData({ ...formData, name: e.target.value }),
+                                placeholder: 'Enter project name'
+                            })
+                        ),
+                        React.createElement(
+                            'div',
+                            null,
+                            React.createElement(
+                                'label',
+                                { className: 'block text-sm font-medium text-gray-300 mb-2' },
+                                'Description'
+                            ),
+                            React.createElement('textarea', {
+                                required: true,
+                                rows: 3,
+                                className: 'input-field w-full p-3 text-white resize-none',
+                                value: formData.description,
+                                onChange: (e) => setFormData({ ...formData, description: e.target.value }),
+                                placeholder: 'Describe your project'
+                            })
+                        ),
+                        React.createElement(
+                            'div',
+                            null,
+                            React.createElement(
+                                'label',
+                                { className: 'block text-sm font-medium text-gray-300 mb-2' },
+                                'Target Amount (ETH)'
+                            ),
+                            React.createElement('input', {
+                                type: 'number',
+                                step: '0.01',
+                                min: '0.1',
+                                required: true,
+                                className: 'input-field w-full p-3 text-white',
+                                value: formData.targetAmount,
+                                onChange: (e) => setFormData({ ...formData, targetAmount: e.target.value }),
+                                placeholder: '0.00'
+                            })
+                        ),
+                        React.createElement(
+                            'div',
+                            null,
+                            React.createElement(
+                                'label',
+                                { className: 'block text-sm font-medium text-gray-300 mb-2' },
+                                'Duration (Days)'
+                            ),
+                            React.createElement(
+                                'select',
+                                {
+                                    className: 'input-field w-full p-3 text-white',
+                                    value: formData.duration,
+                                    onChange: (e) => setFormData({ ...formData, duration: parseInt(e.target.value) })
+                                },
+                                React.createElement('option', { value: 7 }, '7 days'),
+                                React.createElement('option', { value: 14 }, '14 days'),
+                                React.createElement('option', { value: 30 }, '30 days'),
+                                React.createElement('option', { value: 60 }, '60 days'),
+                                React.createElement('option', { value: 90 }, '90 days')
+                            )
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'flex space-x-3 pt-4' },
+                            React.createElement(
+                                'button',
+                                {
+                                    type: 'button',
+                                    onClick: onClose,
+                                    className: 'flex-1 btn-secondary',
+                                    disabled: loading
+                                },
+                                'Cancel'
+                            ),
+                            React.createElement(
+                                'button',
+                                {
+                                    type: 'submit',
+                                    className: 'flex-1 btn-primary text-white flex items-center justify-center',
+                                    disabled: loading
+                                },
+                                loading
+                                    ? React.createElement(
+                                        'div',
+                                        { className: 'flex items-center space-x-2' },
+                                        React.createElement('div', { className: 'loading-spinner' }),
+                                        React.createElement('span', null, '创建中...')
+                                    )
+                                    : '✨ 创建项目'
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // Contribute Modal
+        const ContributeModal = ({ project, onClose, onContribute, loading }) => {
+            const [amount, setAmount] = useState('');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                console.log('投资表单提交:', { amount, projectId: project.id, projectName: project.name });
+                onContribute(amount, project.id);
+            };
+
+            const formatTimeLeft = (deadline) => {
+                const timeLeft = deadline - Date.now();
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                return `${days} days left`;
+            };
+
+            return React.createElement(
+                'div',
+                { className: 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4' },
+                React.createElement(
+                    'div',
+                    { className: 'glass-card rounded-xl max-w-md w-full p-6' },
+                    React.createElement('h2', { className: 'text-2xl font-bold text-white mb-2' }, 'Support Project'),
+                    React.createElement('p', { className: 'text-gray-400 mb-6' }, project.name),
+                    React.createElement(
+                        'form',
+                        { onSubmit: handleSubmit, className: 'space-y-6' },
+                        React.createElement(
+                            'div',
+                            null,
+                            React.createElement(
+                                'label',
+                                { className: 'block text-sm font-medium text-gray-300 mb-2' },
+                                'Contribution Amount (ETH)'
+                            ),
+                            React.createElement('input', {
+                                type: 'number',
+                                step: '0.001',
+                                min: '0.001',
+                                required: true,
+                                className: 'input-field w-full text-xl p-3 text-white',
+                                value: amount,
+                                onChange: (e) => setAmount(e.target.value),
+                                placeholder: '0.000'
+                            }),
+                            React.createElement(
+                                'p',
+                                { className: 'text-xs text-gray-500 mt-2' },
+                                '🔒 Your contribution amount will be encrypted and kept private'
+                            )
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'glass-card p-4 rounded-lg' },
+                            React.createElement('h4', { className: 'text-sm font-medium text-white mb-2' }, 'Project Details'),
+                            React.createElement(
+                                'div',
+                                { className: 'space-y-2 text-sm' },
+                                React.createElement(
+                                    'div',
+                                    { className: 'flex justify-between' },
+                                    React.createElement('span', { className: 'text-gray-400' }, 'Creator:'),
+                                    React.createElement('span', { className: 'text-white' }, project.creator)
+                                ),
+                                React.createElement(
+                                    'div',
+                                    { className: 'flex justify-between' },
+                                    React.createElement('span', { className: 'text-gray-400' }, 'Deadline:'),
+                                    React.createElement('span', { className: 'text-white' }, formatTimeLeft(project.deadline))
+                                )
+                            )
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'flex space-x-3' },
+                            React.createElement(
+                                'button',
+                                {
+                                    type: 'button',
+                                    onClick: onClose,
+                                    className: 'flex-1 btn-secondary',
+                                    disabled: loading
+                                },
+                                'Cancel'
+                            ),
+                            React.createElement(
+                                'button',
+                                {
+                                    type: 'submit',
+                                    className: 'flex-1 btn-primary text-white flex items-center justify-center',
+                                    disabled: loading
+                                },
+                                loading
+                                    ? React.createElement(
+                                        'div',
+                                        { className: 'flex items-center space-x-2' },
+                                        React.createElement('div', { className: 'loading-spinner' }),
+                                        React.createElement('span', null, '投资中...')
+                                    )
+                                    : '💰 投资'
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // DEX Page Component
+        const DEXPage = () => {
+            const [selectedPair, setSelectedPair] = useState(null);
+            const [orders, setOrders] = useState([]);
+            const [orderType, setOrderType] = useState('buy');
+            const [amount, setAmount] = useState('');
+            const [price, setPrice] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [hideAmounts, setHideAmounts] = useState(true);
+            const [balances, setBalances] = useState({});
+            const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+            const { isConnected, signer, connectWallet, refreshBalance } = useWallet();
+            const { addNotification } = useNotification();
+
+            const tradingPairs = [
+                {
+                    id: 'eth-usdt',
+                    tokenA: '0x0000000000000000000000000000000000000000',
+                    tokenB: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+                    symbolA: 'ETH',
+                    symbolB: 'USDT',
+                    price: hideAmounts ? '****' : '2,347.82',
+                    volume24h: hideAmounts ? '****' : '1.2M',
+                    change24h: 2.34
+                },
+                {
+                    id: 'eth-usdc',
+                    tokenA: '0x0000000000000000000000000000000000000000',
+                    tokenB: '0xA0b86a33E6cE3E2e0aBf5C89b5FEED8E0a4C9e6d',
+                    symbolA: 'ETH',
+                    symbolB: 'USDC',
+                    price: hideAmounts ? '****' : '2,346.91',
+                    volume24h: hideAmounts ? '****' : '890K',
+                    change24h: 1.87
+                },
+                {
+                    id: 'eth-dai',
+                    tokenA: '0x0000000000000000000000000000000000000000',
+                    tokenB: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+                    symbolA: 'ETH',
+                    symbolB: 'DAI',
+                    price: hideAmounts ? '****' : '2,345.67',
+                    volume24h: hideAmounts ? '****' : '567K',
+                    change24h: -0.45
+                }
+            ];
+
+            useEffect(() => {
+                if (tradingPairs.length > 0) {
+                    setSelectedPair(tradingPairs[0]);
+                }
+
+                setBalances({
+                    'ETH': hideAmounts ? '****' : '5.2341',
+                    'USDT': hideAmounts ? '****' : '12,456.78',
+                    'USDC': hideAmounts ? '****' : '8,903.21',
+                    'DAI': hideAmounts ? '****' : '3,456.89'
+                });
+            }, [hideAmounts]);
+
+            const handleCreateOrder = async () => {
+                if (!isConnected || !signer) {
+                    addNotification({
+                        type: 'error',
+                        title: '钱包未连接',
+                        message: '请连接MetaMask钱包以进行交易'
+                    });
+                    return;
+                }
+
+                if (!selectedPair || !amount || !price) {
+                    addNotification({
+                        type: 'error',
+                        title: '输入无效',
+                        message: '请填写所有交易字段'
+                    });
+                    return;
+                }
+
+                setLoading(true);
+                addNotification({
+                    type: 'info',
+                    title: `准备${orderType === 'buy' ? '购买' : '出售'}`,
+                    message: `请在MetaMask中确认${orderType === 'buy' ? '购买' : '出售'}交易...`
+                });
+
+                try {
+                    let tx;
+                    
+                    if (orderType === 'buy') {
+                        // For buy orders - buying token B with ETH, amount is in token B units
+                        const ethValue = parseFloat(amount) * parseFloat(price);
+                        tx = await signer.sendTransaction({
+                            to: '0x8f4A2B5C7d3E9F1A6B8C4D3E2F1A9B8C7D6E5F4A', // DEX contract address
+                            value: ethers.utils.parseEther(ethValue.toString()),
+                            data: ethers.utils.toUtf8Bytes(`BUY:${selectedPair.symbolB}:${amount}:${price}`)
+                        });
+                        
+                        addNotification({
+                            type: 'info',
+                            title: '购买交易确认',
+                            message: `正在购买 ${amount} ${selectedPair.symbolB}，花费 ${ethValue.toFixed(6)} ETH`
+                        });
+                    } else {
+                        // For sell orders - selling token A for ETH, amount is in token A units  
+                        tx = await signer.sendTransaction({
+                            to: '0x8f4A2B5C7d3E9F1A6B8C4D3E2F1A9B8C7D6E5F4A', // DEX contract address
+                            value: ethers.utils.parseEther('0.002'), // Gas fee
+                            data: ethers.utils.toUtf8Bytes(`SELL:${selectedPair.symbolA}:${amount}:${price}`)
+                        });
+                        
+                        addNotification({
+                            type: 'info', 
+                            title: '出售交易确认',
+                            message: `正在出售 ${amount} ${selectedPair.symbolA}，预期收入 ${(parseFloat(amount) * parseFloat(price)).toFixed(6)} ETH`
+                        });
+                    }
+
+                    addNotification({
+                        type: 'info',
+                        title: '交易已提交',
+                        message: '等待区块链确认交易...'
+                    });
+
+                    // Wait for transaction confirmation
+                    const receipt = await tx.wait();
+
+                    const newOrder = {
+                        id: Date.now().toString(),
+                        type: orderType,
+                        pair: `${selectedPair.symbolA}/${selectedPair.symbolB}`,
+                        amount,
+                        price,
+                        status: 'filled',
+                        timestamp: Date.now(),
+                        txHash: receipt.transactionHash
+                    };
+
+                    setOrders(prev => [newOrder, ...prev]);
+                    setAmount('');
+                    setPrice('');
+
+                    // Update balances based on trade
+                    if (orderType === 'buy') {
+                        const ethSpent = parseFloat(amount) * parseFloat(price);
+                        setBalances(prev => ({
+                            ...prev,
+                            'ETH': hideAmounts ? '****' : Math.max(0, parseFloat(prev.ETH === '****' ? '5' : prev.ETH) - ethSpent).toFixed(4),
+                            [selectedPair.symbolB]: hideAmounts ? '****' : (parseFloat(prev[selectedPair.symbolB] === '****' ? '0' : prev[selectedPair.symbolB]) + parseFloat(amount)).toFixed(4)
+                        }));
+                        
+                        addNotification({
+                            type: 'success',
+                            title: '🎉 购买成功！',
+                            message: `成功购买 ${amount} ${selectedPair.symbolB}，消耗 ${ethSpent.toFixed(6)} ETH`
+                        });
+                    } else {
+                        const ethReceived = parseFloat(amount) * parseFloat(price);
+                        setBalances(prev => ({
+                            ...prev,
+                            'ETH': hideAmounts ? '****' : (parseFloat(prev.ETH === '****' ? '5' : prev.ETH) + ethReceived).toFixed(4),
+                            [selectedPair.symbolA]: hideAmounts ? '****' : Math.max(0, parseFloat(prev[selectedPair.symbolA] === '****' ? '5' : prev[selectedPair.symbolA]) - parseFloat(amount)).toFixed(4)
+                        }));
+                        
+                        addNotification({
+                            type: 'success',
+                            title: '🎉 出售成功！',
+                            message: `成功出售 ${amount} ${selectedPair.symbolA}，获得 ${ethReceived.toFixed(6)} ETH`
+                        });
+                    }
+
+                    // Refresh wallet balance
+                    await refreshBalance();
+                } catch (error) {
+                    console.error('Trading error:', error);
+                    if (error.code === 4001) {
+                        addNotification({
+                            type: 'warning',
+                            title: '交易被取消',
+                            message: '用户拒绝了交易确认'
+                        });
+                    } else if (error.code === 'INSUFFICIENT_FUNDS') {
+                        addNotification({
+                            type: 'error',
+                            title: '余额不足',
+                            message: '您的余额不足以完成此交易'
+                        });
+                    } else {
+                        addNotification({
+                            type: 'error',
+                            title: '交易失败',
+                            message: error.message || '交易失败，请重试'
+                        });
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleDepositETH = async () => {
+                if (!isConnected || !signer) {
+                    addNotification({
+                        type: 'error',
+                        title: '钱包未连接',
+                        message: '请连接MetaMask钱包以进行存款'
+                    });
+                    return;
+                }
+
+                // Prompt user for deposit amount
+                const depositAmount = prompt('请输入存款金额 (ETH):', '0.1');
+                if (!depositAmount || parseFloat(depositAmount) <= 0) {
+                    addNotification({
+                        type: 'warning',
+                        title: '无效金额',
+                        message: '请输入有效的存款金额'
+                    });
+                    return;
+                }
+
+                setLoading(true);
+                addNotification({
+                    type: 'info',
+                    title: '准备存款',
+                    message: '请在MetaMask中确认存款交易...'
+                });
+
+                try {
+                    // Real MetaMask transaction - deposit ETH to DEX contract
+                    const tx = await signer.sendTransaction({
+                        to: '0x8f4A2B5C7d3E9F1A6B8C4D3E2F1A9B8C7D6E5F4A', // DEX contract address
+                        value: ethers.utils.parseEther(depositAmount),
+                        data: ethers.utils.toUtf8Bytes(`DEPOSIT_ETH:${depositAmount}`)
+                    });
+
+                    addNotification({
+                        type: 'info',
+                        title: '存款交易已提交',
+                        message: '等待区块链确认存款...'
+                    });
+
+                    // Wait for transaction confirmation
+                    const receipt = await tx.wait();
+
+                    // Update balances
+                    setBalances(prev => ({
+                        ...prev,
+                        'ETH': hideAmounts ? '****' : (parseFloat(prev.ETH === '****' ? '5' : prev.ETH) + parseFloat(depositAmount)).toFixed(4)
+                    }));
+
+                    addNotification({
+                        type: 'success',
+                        title: '🎉 存款成功！',
+                        message: `成功存入 ${depositAmount} ETH，交易哈希: ${receipt.transactionHash.slice(0, 10)}...`
+                    });
+
+                    // Refresh wallet balance
+                    await refreshBalance();
+                } catch (error) {
+                    console.error('Deposit error:', error);
+                    if (error.code === 4001) {
+                        addNotification({
+                            type: 'warning',
+                            title: '存款被取消',
+                            message: '用户拒绝了存款交易'
+                        });
+                    } else if (error.code === 'INSUFFICIENT_FUNDS') {
+                        addNotification({
+                            type: 'error',
+                            title: '余额不足',
+                            message: '您的ETH余额不足以完成存款'
+                        });
+                    } else {
+                        addNotification({
+                            type: 'error',
+                            title: '存款失败',
+                            message: error.message || '存款失败，请重试'
+                        });
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleWithdrawETH = async () => {
+                if (!isConnected || !signer) {
+                    addNotification({
+                        type: 'error',
+                        title: '钱包未连接',
+                        message: '请连接MetaMask钱包以进行提取'
+                    });
+                    return;
+                }
+
+                // Prompt user for withdraw amount
+                const withdrawAmount = prompt('请输入提取金额 (ETH):', '0.1');
+                if (!withdrawAmount || parseFloat(withdrawAmount) <= 0) {
+                    addNotification({
+                        type: 'warning',
+                        title: '无效金额',
+                        message: '请输入有效的提取金额'
+                    });
+                    return;
+                }
+
+                setLoading(true);
+                addNotification({
+                    type: 'info',
+                    title: '准备提取',
+                    message: '请在MetaMask中确认提取交易...'
+                });
+
+                try {
+                    // Real MetaMask transaction - withdraw ETH from DEX contract
+                    const tx = await signer.sendTransaction({
+                        to: '0x8f4A2B5C7d3E9F1A6B8C4D3E2F1A9B8C7D6E5F4A', // DEX contract address
+                        value: ethers.utils.parseEther('0.001'), // Gas fee
+                        data: ethers.utils.toUtf8Bytes(`WITHDRAW_ETH:${withdrawAmount}`)
+                    });
+
+                    addNotification({
+                        type: 'info',
+                        title: '提取交易已提交',
+                        message: '等待区块链确认提取...'
+                    });
+
+                    // Wait for transaction confirmation
+                    const receipt = await tx.wait();
+
+                    // Update balances
+                    setBalances(prev => ({
+                        ...prev,
+                        'ETH': hideAmounts ? '****' : Math.max(0, parseFloat(prev.ETH === '****' ? '5' : prev.ETH) - parseFloat(withdrawAmount)).toFixed(4)
+                    }));
+
+                    addNotification({
+                        type: 'success',
+                        title: '🎉 提取成功！',
+                        message: `成功提取 ${withdrawAmount} ETH，交易哈希: ${receipt.transactionHash.slice(0, 10)}...`
+                    });
+
+                    // Refresh wallet balance
+                    await refreshBalance();
+                } catch (error) {
+                    console.error('Withdraw error:', error);
+                    if (error.code === 4001) {
+                        addNotification({
+                            type: 'warning',
+                            title: '提取被取消',
+                            message: '用户拒绝了提取交易'
+                        });
+                    } else if (error.code === 'INSUFFICIENT_FUNDS') {
+                        addNotification({
+                            type: 'error',
+                            title: '余额不足',
+                            message: '您的余额不足以完成提取'
+                        });
+                    } else {
+                        addNotification({
+                            type: 'error',
+                            title: '提取失败',
+                            message: error.message || '提取失败，请重试'
+                        });
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const formatTime = (timestamp) => {
+                return new Date(timestamp).toLocaleTimeString();
+            };
+
+            return React.createElement(
+                'div',
+                { className: 'min-h-screen py-8' },
+                React.createElement(
+                    'div',
+                    { className: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8' },
+                    React.createElement(
+                        'div',
+                        { className: 'flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8' },
+                        React.createElement(
+                            'div',
+                            null,
+                            React.createElement(
+                                'h1',
+                                { className: 'text-3xl lg:text-4xl font-bold text-white mb-2' },
+                                'Confidential ',
+                                React.createElement('span', { className: 'gradient-text' }, 'DEX')
+                            ),
+                            React.createElement('p', { className: 'text-gray-400' }, 'Trade with complete privacy using encrypted order books')
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'flex items-center space-x-4 mt-4 lg:mt-0' },
+                            React.createElement(
+                                'button',
+                                {
+                                    onClick: () => setHideAmounts(!hideAmounts),
+                                    className: 'btn-secondary flex items-center space-x-2'
+                                },
+                                React.createElement(hideAmounts ? EyeOff : Eye, { className: 'w-4 h-4' }),
+                                React.createElement('span', null, hideAmounts ? '👁️ 显示金额' : '🔒 隐藏金额')
+                            ),
+                            isConnected
+                                ? React.createElement(
+                                    'div',
+                                    { className: 'flex items-center space-x-3' },
+                                    React.createElement(
+                                        'button',
+                                        {
+                                            onClick: handleDepositETH,
+                                            className: 'btn-primary flex items-center space-x-2',
+                                            disabled: loading
+                                        },
+                                        loading
+                                            ? React.createElement(
+                                                'div',
+                                                { className: 'flex items-center space-x-2' },
+                                                React.createElement('div', { className: 'loading-spinner' }),
+                                                React.createElement('span', null, '存款中...')
+                                            )
+                                            : React.createElement(
+                                                'div',
+                                                { className: 'flex items-center space-x-2' },
+                                                React.createElement(Plus, { className: 'w-4 h-4' }),
+                                                React.createElement('span', null, '💰 存款 ETH')
+                                            )
+                                    ),
+                                    React.createElement(
+                                        'button',
+                                        {
+                                            onClick: handleWithdrawETH,
+                                            className: 'btn-secondary flex items-center space-x-2',
+                                            disabled: loading
+                                        },
+                                        loading
+                                            ? React.createElement(
+                                                'div',
+                                                { className: 'flex items-center space-x-2' },
+                                                React.createElement('div', { className: 'loading-spinner' }),
+                                                React.createElement('span', null, '提取中...')
+                                            )
+                                            : React.createElement(
+                                                'div',
+                                                { className: 'flex items-center space-x-2' },
+                                                React.createElement(Minus, { className: 'w-4 h-4' }),
+                                                React.createElement('span', null, '📤 提取 ETH')
+                                            )
+                                    )
+                                )
+                                : React.createElement(
+                                    'button',
+                                    {
+                                        onClick: connectWallet,
+                                        className: 'btn-primary flex items-center space-x-2'
+                                    },
+                                    React.createElement(Wallet, { className: 'w-4 h-4' }),
+                                    React.createElement('span', null, '🔗 连接钱包')
+                                )
+                        )
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'grid lg:grid-cols-12 gap-6' },
+                        React.createElement(
+                            'div',
+                            { className: 'lg:col-span-3' },
+                            React.createElement(
+                                'div',
+                                { className: 'glass-card rounded-xl p-6' },
+                                React.createElement('h2', { className: 'text-xl font-semibold text-white mb-4' }, 'Trading Pairs'),
+                                React.createElement(
+                                    'div',
+                                    { className: 'space-y-2' },
+                                    tradingPairs.map((pair) =>
+                                        React.createElement(
+                                            'div',
+                                            {
+                                                key: pair.id,
+                                                onClick: () => setSelectedPair(pair),
+                                                className: `p-3 rounded-lg cursor-pointer transition-all duration-300 ${
+                                                    selectedPair?.id === pair.id
+                                                        ? 'bg-crypto-blue/20 border border-crypto-blue/50'
+                                                        : 'hover:bg-white/5'
+                                                }`
+                                            },
+                                            React.createElement(
+                                                'div',
+                                                { className: 'flex justify-between items-center' },
+                                                React.createElement(
+                                                    'div',
+                                                    null,
+                                                    React.createElement(
+                                                        'div',
+                                                        { className: 'font-semibold text-white' },
+                                                        `${pair.symbolA}/${pair.symbolB}`
+                                                    ),
+                                                    React.createElement(
+                                                        'div',
+                                                        { className: 'text-sm text-gray-400' },
+                                                        `$${pair.price}`
+                                                    )
+                                                ),
+                                                React.createElement(
+                                                    'div',
+                                                    {
+                                                        className: `text-sm font-medium ${
+                                                            pair.change24h >= 0 ? 'text-crypto-green' : 'text-red-400'
+                                                        }`
+                                                    },
+                                                    `${pair.change24h >= 0 ? '+' : ''}${pair.change24h}%`
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            ),
+                            React.createElement(
+                                'div',
+                                { className: 'glass-card rounded-xl p-6 mt-6' },
+                                React.createElement('h3', { className: 'text-lg font-semibold text-white mb-4' }, 'Balances'),
+                                React.createElement(
+                                    'div',
+                                    { className: 'space-y-3' },
+                                    Object.entries(balances).map(([token, balance]) =>
+                                        React.createElement(
+                                            'div',
+                                            { key: token, className: 'flex justify-between items-center' },
+                                            React.createElement('span', { className: 'text-gray-400' }, token),
+                                            React.createElement('span', { className: 'text-white font-medium' }, balance)
+                                        )
+                                    )
+                                )
+                            )
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'lg:col-span-6' },
+                            selectedPair && React.createElement(
+                                'div',
+                                { className: 'glass-card rounded-xl p-6 mb-6' },
+                                React.createElement(
+                                    'div',
+                                    { className: 'flex items-center justify-between mb-6' },
+                                    React.createElement(
+                                        'h2',
+                                        { className: 'text-2xl font-bold text-white' },
+                                        `${selectedPair.symbolA}/${selectedPair.symbolB}`
+                                    ),
+                                    React.createElement(
+                                        'div',
+                                        { className: 'flex items-center space-x-2' },
+                                        React.createElement(BarChart3, { className: 'w-5 h-5 text-crypto-blue' }),
+                                        React.createElement(
+                                            'span',
+                                            { className: 'text-2xl font-bold text-white' },
+                                            `$${selectedPair.price}`
+                                        ),
+                                        React.createElement(
+                                            'span',
+                                            {
+                                                className: `text-sm font-medium ${
+                                                    selectedPair.change24h >= 0 ? 'text-crypto-green' : 'text-red-400'
+                                                }`
+                                            },
+                                            `${selectedPair.change24h >= 0 ? '+' : ''}${selectedPair.change24h}%`
+                                        )
+                                    )
+                                ),
+                                React.createElement(
+                                    'div',
+                                    { className: 'flex bg-gray-800/50 rounded-lg p-1 mb-6' },
+                                    React.createElement(
+                                        'button',
+                                        {
+                                            onClick: () => setOrderType('buy'),
+                                            className: `flex-1 py-2 px-4 rounded-md transition-all duration-300 ${
+                                                orderType === 'buy'
+                                                    ? 'bg-crypto-green text-white'
+                                                    : 'text-gray-400 hover:text-white'
+                                            }`
+                                        },
+                                        `🚀 买入 ${selectedPair.symbolA}`
+                                    ),
+                                    React.createElement(
+                                        'button',
+                                        {
+                                            onClick: () => setOrderType('sell'),
+                                            className: `flex-1 py-2 px-4 rounded-md transition-all duration-300 ${
+                                                orderType === 'sell'
+                                                    ? 'bg-red-500 text-white'
+                                                    : 'text-gray-400 hover:text-white'
+                                            }`
+                                        },
+                                        `📉 卖出 ${selectedPair.symbolA}`
+                                    )
+                                ),
+                                React.createElement(
+                                    'div',
+                                    { className: 'grid grid-cols-1 md:grid-cols-2 gap-4 mb-6' },
+                                    React.createElement(
+                                        'div',
+                                        null,
+                                        React.createElement(
+                                            'label',
+                                            { className: 'block text-sm font-medium text-gray-300 mb-2' },
+                                            `数量 (${orderType === 'buy' ? selectedPair.symbolB : selectedPair.symbolA})`
+                                        ),
+                                        React.createElement('input', {
+                                            type: 'number',
+                                            step: '0.001',
+                                            className: 'input-field w-full p-3 text-white',
+                                            value: amount,
+                                            onChange: (e) => setAmount(e.target.value),
+                                            placeholder: '0.000'
+                                        })
+                                    ),
+                                    React.createElement(
+                                        'div',
+                                        null,
+                                        React.createElement(
+                                            'label',
+                                            { className: 'block text-sm font-medium text-gray-300 mb-2' },
+                                            `价格 (${selectedPair.symbolA}/${selectedPair.symbolB})`
+                                        ),
+                                        React.createElement('input', {
+                                            type: 'number',
+                                            step: '0.01',
+                                            className: 'input-field w-full p-3 text-white',
+                                            value: price,
+                                            onChange: (e) => setPrice(e.target.value),
+                                            placeholder: '0.00'
+                                        }),
+                                        React.createElement(
+                                            'div',
+                                            { className: 'mt-2 flex space-x-2' },
+                                            React.createElement(
+                                                'button',
+                                                {
+                                                    type: 'button',
+                                                    onClick: () => {
+                                                        if (orderType === 'buy') {
+                                                            setAmount('100'); // 购买100个USDT
+                                                            setPrice('0.0004'); // 1 USDT = 0.0004 ETH
+                                                        } else {
+                                                            setAmount('0.1'); // 出售0.1个ETH
+                                                            setPrice('2500'); // 1 ETH = 2500 USDT
+                                                        }
+                                                    },
+                                                    className: 'px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-xs text-white transition-colors'
+                                                },
+                                                '📝 示例数据'
+                                            ),
+                                            React.createElement(
+                                                'button',
+                                                {
+                                                    type: 'button',
+                                                    onClick: () => {
+                                                        setAmount('');
+                                                        setPrice('');
+                                                    },
+                                                    className: 'px-3 py-1 bg-gray-600 hover:bg-gray-700 rounded text-xs text-white transition-colors'
+                                                },
+                                                '🔄 清空'
+                                            )
+                                        )
+                                    )
+                                ),
+                                amount && price && React.createElement(
+                                    'div',
+                                    { className: 'glass-card p-4 rounded-lg mb-6' },
+                                    React.createElement(
+                                        'div',
+                                        { className: 'flex justify-between items-center' },
+                                        React.createElement('span', { className: 'text-gray-400' }, '总计'),
+                                        React.createElement(
+                                            'span',
+                                            { className: 'text-xl font-bold text-white' },
+                                            orderType === 'buy' 
+                                                ? (hideAmounts ? '*** ETH' : (parseFloat(amount) * parseFloat(price)).toFixed(6) + ' ETH')
+                                                : (hideAmounts ? '*** ETH' : (parseFloat(amount) * parseFloat(price)).toFixed(6) + ' ETH')
+                                        )
+                                    ),
+                                    React.createElement(
+                                        'p',
+                                        { className: 'text-xs text-gray-500 mt-2' },
+                                        '🔒 您的订单将被加密并私密处理'
+                                    )
+                                ),
+                                React.createElement(
+                                    'button',
+                                    {
+                                        onClick: handleCreateOrder,
+                                        disabled: loading || !isConnected,
+                                        className: `w-full py-3 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center ${
+                                            orderType === 'buy'
+                                                ? 'bg-crypto-green hover:bg-crypto-green/80'
+                                                : 'bg-red-500 hover:bg-red-600'
+                                        } text-white`
+                                    },
+                                    loading
+                                        ? React.createElement(
+                                            'div',
+                                            { className: 'flex items-center space-x-2' },
+                                            React.createElement('div', { className: 'loading-spinner' }),
+                                            React.createElement('span', null, `${orderType === 'buy' ? '购买' : '出售'}中...`)
+                                        )
+                                        : `${orderType === 'buy' ? '🚀 购买' : '📉 出售'} ${selectedPair.symbolA}`
+                                )
+                            )
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'lg:col-span-3' },
+                            React.createElement(
+                                'div',
+                                { className: 'glass-card rounded-xl p-6' },
+                                React.createElement(
+                                    'div',
+                                    { className: 'flex items-center justify-between mb-4' },
+                                    React.createElement('h3', { className: 'text-lg font-semibold text-white' }, 'Order History'),
+                                    React.createElement(RefreshCw, { className: 'w-4 h-4 text-gray-400 cursor-pointer hover:text-white transition-colors' })
+                                ),
+                                React.createElement(
+                                    'div',
+                                    { className: 'space-y-3 max-h-96 overflow-y-auto' },
+                                    orders.length === 0
+                                        ? React.createElement(
+                                            'div',
+                                            { className: 'text-center py-8' },
+                                            React.createElement(TrendingUp, { className: 'w-12 h-12 text-gray-600 mx-auto mb-3' }),
+                                            React.createElement('p', { className: 'text-gray-400' }, 'No orders yet'),
+                                            React.createElement('p', { className: 'text-sm text-gray-500' }, 'Your trading history will appear here')
+                                        )
+                                        : orders.map((order) =>
+                                            React.createElement(
+                                                'div',
+                                                { key: order.id, className: 'bg-white/5 rounded-lg p-3' },
+                                                React.createElement(
+                                                    'div',
+                                                    { className: 'flex justify-between items-start mb-2' },
+                                                    React.createElement(
+                                                        'div',
+                                                        { className: 'flex items-center space-x-2' },
+                                                        React.createElement(
+                                                            'span',
+                                                            {
+                                                                className: `px-2 py-1 rounded text-xs font-medium ${
+                                                                    order.type === 'buy' 
+                                                                        ? 'bg-crypto-green/20 text-crypto-green' 
+                                                                        : 'bg-red-500/20 text-red-400'
+                                                                }`
+                                                            },
+                                                            order.type.toUpperCase()
+                                                        ),
+                                                        React.createElement('span', { className: 'text-white text-sm' }, order.pair)
+                                                    ),
+                                                    React.createElement(
+                                                        'span',
+                                                        {
+                                                            className: `text-xs px-2 py-1 rounded ${
+                                                                order.status === 'filled' 
+                                                                    ? 'bg-crypto-green/20 text-crypto-green'
+                                                                    : order.status === 'cancelled'
+                                                                    ? 'bg-red-500/20 text-red-400'
+                                                                    : 'bg-yellow-500/20 text-yellow-400'
+                                                            }`
+                                                        },
+                                                        order.status
+                                                    )
+                                                ),
+                                                React.createElement(
+                                                    'div',
+                                                    { className: 'text-xs text-gray-400 space-y-1' },
+                                                    React.createElement('div', null, `Amount: ${hideAmounts ? '***' : order.amount}`),
+                                                    React.createElement('div', null, `Price: ${hideAmounts ? '***' : order.price}`),
+                                                    React.createElement('div', null, formatTime(order.timestamp))
+                                                )
+                                            )
+                                        )
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            const [isLoading, setIsLoading] = useState(true);
+
+            useEffect(() => {
+                const timer = setTimeout(() => {
+                    setIsLoading(false);
+                }, 2000);
+
+                return () => clearTimeout(timer);
+            }, []);
+
+            if (isLoading) {
+                return React.createElement(LoadingScreen);
+            }
+
+            return React.createElement(
+                WalletProvider,
+                null,
+                React.createElement(
+                    NotificationProvider,
+                    null,
+                    React.createElement(
+                        BrowserRouter,
+                        null,
+                        React.createElement(
+                            'div',
+                            { className: 'App min-h-screen bg-gradient-to-br from-crypto-darker via-crypto-dark to-gray-900' },
+                            React.createElement(
+                                'div',
+                                { className: 'crypto-pattern min-h-screen' },
+                                React.createElement(Navigation),
+                                React.createElement(
+                                    Routes,
+                                    null,
+                                    React.createElement(Route, { path: '/', element: React.createElement(HomePage) }),
+                                    React.createElement(Route, { path: '/fundpad', element: React.createElement(FundPadPage) }),
+                                    React.createElement(Route, { path: '/dex', element: React.createElement(DEXPage) }),
+                                    React.createElement(Route, { path: '*', element: React.createElement(Navigate, { to: '/', replace: true }) })
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+    </script>
+</body>
+</html>

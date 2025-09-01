@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 DeFi平台 - 独立版本</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6.8.1/dist/umd/react-router-dom.development.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'crypto-blue': '#3B82F6',
+                        'crypto-purple': '#8B5CF6',
+                        'crypto-green': '#10B981',
+                        'crypto-dark': '#1F2937',
+                        'crypto-darker': '#111827',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .gradient-text {
+            background: linear-gradient(45deg, #3B82F6, #8B5CF6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #3B82F6, #8B5CF6);
+            transition: all 0.3s ease;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            padding: 12px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .crypto-pattern {
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%);
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            padding: 16px;
+            border-radius: 12px;
+            max-width: 400px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification.success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            color: #10B981;
+        }
+
+        .notification.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #EF4444;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            padding: 16px;
+        }
+
+        .modal-content {
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            backdrop-filter: blur(12px);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3B82F6;
+        }
+
+        .project-card {
+            transition: all 0.3s ease;
+        }
+
+        .project-card:hover {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script>
+        console.log('🚀 开始加载 DeFi 平台...');
+
+        // 等待所有依赖加载完成
+        function checkDependencies() {
+            return new Promise((resolve) => {
+                const check = () => {
+                    if (typeof React !== 'undefined' && 
+                        typeof ReactDOM !== 'undefined' && 
+                        typeof ReactRouterDOM !== 'undefined' && 
+                        typeof lucide !== 'undefined' && 
+                        typeof ethers !== 'undefined') {
+                        resolve();
+                    } else {
+                        setTimeout(check, 100);
+                    }
+                };
+                check();
+            });
+        }
+
+        checkDependencies().then(() => {
+            console.log('✅ 所有依赖已加载完成');
+            initializeApp();
+        });
+
+        function initializeApp() {
+            const { useState, useEffect, createContext, useContext } = React;
+            const { BrowserRouter, Routes, Route, Link, useLocation, Navigate } = ReactRouterDOM;
+            const { Shield, TrendingUp, DollarSign, Users, Zap, ChevronRight, Home, Plus, Calendar, Target, Eye, EyeOff, Wallet } = lucide;
+
+            // 钱包上下文
+            const WalletContext = createContext();
+
+            const WalletProvider = ({ children }) => {
+                const [isConnected, setIsConnected] = useState(false);
+                const [account, setAccount] = useState(null);
+                const [balance, setBalance] = useState('0');
+
+                const connectWallet = async () => {
+                    if (!window.ethereum) {
+                        showNotification('请安装 MetaMask 钱包', 'error');
+                        return;
+                    }
+
+                    try {
+                        const accounts = await window.ethereum.request({
+                            method: 'eth_requestAccounts',
+                        });
+
+                        if (accounts.length > 0) {
+                            setAccount(accounts[0]);
+                            setIsConnected(true);
+                            setBalance('5.2341');
+                            showNotification('钱包连接成功!', 'success');
+                        }
+                    } catch (error) {
+                        console.error('钱包连接失败:', error);
+                        showNotification('钱包连接失败', 'error');
+                    }
+                };
+
+                const disconnectWallet = () => {
+                    setIsConnected(false);
+                    setAccount(null);
+                    setBalance('0');
+                    showNotification('钱包已断开连接', 'success');
+                };
+
+                return React.createElement(WalletContext.Provider, {
+                    value: {
+                        isConnected,
+                        account,
+                        balance,
+                        connectWallet,
+                        disconnectWallet
+                    }
+                }, children);
+            };
+
+            const useWallet = () => {
+                const context = useContext(WalletContext);
+                if (!context) {
+                    throw new Error('useWallet must be used within WalletProvider');
+                }
+                return context;
+            };
+
+            // 通知系统
+            function showNotification(message, type = 'success') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.innerHTML = `
+                    <div style="display: flex; justify-content: between; align-items: center;">
+                        <span>${message}</span>
+                        <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: inherit; cursor: pointer; margin-left: 12px;">×</button>
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 5000);
+            }
+
+            // 导航栏组件
+            const Navigation = () => {
+                const { isConnected, account, balance, connectWallet, disconnectWallet } = useWallet();
+                const location = useLocation();
+
+                const isActive = (path) => location.pathname === path;
+                const formatAddress = (address) => `${address.slice(0, 6)}...${address.slice(-4)}`;
+
+                return React.createElement('nav', {
+                    className: 'glass-card border-b border-white/10 sticky top-0 z-50'
+                }, React.createElement('div', {
+                    className: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'
+                }, React.createElement('div', {
+                    className: 'flex justify-between h-16'
+                }, 
+                // Logo
+                React.createElement('div', {
+                    className: 'flex items-center'
+                }, React.createElement(Link, {
+                    to: '/',
+                    className: 'flex items-center space-x-2'
+                }, React.createElement('div', {
+                    className: 'w-10 h-10 bg-gradient-to-r from-crypto-blue to-crypto-purple rounded-lg flex items-center justify-center'
+                }, React.createElement(Shield, { className: 'w-6 h-6 text-white' })),
+                React.createElement('div', {
+                    className: 'hidden sm:block'
+                }, React.createElement('h1', {
+                    className: 'text-xl font-bold gradient-text'
+                }, 'DeFi Platform')))),
+
+                // Navigation Links
+                React.createElement('div', {
+                    className: 'hidden md:flex items-center space-x-8'
+                }, 
+                React.createElement(Link, {
+                    to: '/',
+                    className: `nav-link ${isActive('/') ? 'active' : ''}`
+                }, React.createElement(Home, { className: 'w-4 h-4' }), '首页'),
+                React.createElement(Link, {
+                    to: '/fundpad',
+                    className: `nav-link ${isActive('/fundpad') ? 'active' : ''}`
+                }, React.createElement(DollarSign, { className: 'w-4 h-4' }), 'FundPad'),
+                React.createElement(Link, {
+                    to: '/dex',
+                    className: `nav-link ${isActive('/dex') ? 'active' : ''}`
+                }, React.createElement(TrendingUp, { className: 'w-4 h-4' }), 'DEX')),
+
+                // Wallet Section
+                React.createElement('div', {
+                    className: 'flex items-center space-x-4'
+                }, 
+                isConnected && account ? React.createElement('div', {
+                    className: 'hidden sm:flex items-center space-x-2 glass-card px-4 py-2 rounded-lg text-white text-sm'
+                }, `${formatAddress(account)} - ${balance} ETH`) : null,
+                React.createElement('button', {
+                    onClick: isConnected ? disconnectWallet : connectWallet,
+                    className: isConnected ? 'btn-secondary' : 'btn-primary'
+                }, React.createElement(Wallet, { className: 'w-4 h-4 mr-2' }), 
+                isConnected ? '断开钱包' : '连接钱包')))));
+            };
+
+            // 首页组件
+            const HomePage = () => {
+                return React.createElement('div', {
+                    className: 'min-h-screen'
+                }, React.createElement('section', {
+                    className: 'relative py-20 lg:py-32'
+                }, React.createElement('div', {
+                    className: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'
+                }, React.createElement('div', {
+                    className: 'text-center'
+                }, React.createElement('div', {
+                    className: 'inline-flex items-center space-x-2 glass-card px-4 py-2 rounded-full mb-8'
+                }, React.createElement(Zap, { className: 'w-4 h-4 text-crypto-blue' }),
+                React.createElement('span', { className: 'text-sm text-gray-300' }, '基于 FHE 加密技术')),
+                
+                React.createElement('h1', {
+                    className: 'text-4xl lg:text-6xl font-bold text-white mb-6'
+                }, '未来的 ', React.createElement('span', { className: 'gradient-text' }, '隐私'), ' DeFi'),
+                
+                React.createElement('p', {
+                    className: 'text-xl text-gray-400 mb-8 max-w-3xl mx-auto'
+                }, '体验真正的 DeFi 隐私保护，使用完全同态加密技术。启动筹款活动和在 DEX 上交易，享受完全交易机密性。'),
+                
+                React.createElement('div', {
+                    className: 'flex flex-col sm:flex-row gap-4 justify-center'
+                }, React.createElement(Link, {
+                    to: '/fundpad',
+                    className: 'btn-primary px-8 py-4 rounded-xl text-lg font-semibold text-white flex items-center justify-center no-underline'
+                }, '启动项目', React.createElement(ChevronRight, { className: 'w-5 h-5 ml-2' })),
+                React.createElement(Link, {
+                    to: '/dex',
+                    className: 'btn-secondary px-8 py-4 rounded-xl text-lg font-semibold text-white flex items-center justify-center no-underline'
+                }, '立即交易'))))),
+
+                React.createElement('section', {
+                    className: 'py-20'
+                }, React.createElement('div', {
+                    className: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'
+                }, React.createElement('div', {
+                    className: 'grid grid-cols-2 lg:grid-cols-4 gap-8 mb-16'
+                }, [
+                    { label: '总筹集', value: '$2.5M+' },
+                    { label: '活跃项目', value: '150+' },
+                    { label: '隐私交易', value: '10K+' },
+                    { label: '社区成员', value: '5K+' }
+                ].map((stat, index) => React.createElement('div', {
+                    key: index,
+                    className: 'text-center'
+                }, React.createElement('div', {
+                    className: 'text-3xl lg:text-4xl font-bold text-white mb-2'
+                }, stat.value), React.createElement('div', {
+                    className: 'text-gray-400'
+                }, stat.label)))))));
+            };
+
+            // FundPad页面组件
+            const FundPadPage = () => {
+                const [projects, setProjects] = useState([
+                    {
+                        id: 1,
+                        name: "DeFi隐私工具",
+                        description: "使用零知识证明构建下一代DeFi协议隐私工具",
+                        targetAmount: "100",
+                        raised: "45.7",
+                        deadline: Date.now() + 30 * 24 * 60 * 60 * 1000,
+                        creator: "0x1234...5678",
+                        backers: 127
+                    },
+                    {
+                        id: 2,
+                        name: "隐私NFT市场",
+                        description: "一个具有隐藏价格和私人交易的NFT交易市场",
+                        targetAmount: "250",
+                        raised: "182.3",
+                        deadline: Date.now() + 15 * 24 * 60 * 60 * 1000,
+                        creator: "0xabcd...efgh",
+                        backers: 89
+                    }
+                ]);
+                const [showCreateModal, setShowCreateModal] = useState(false);
+                const [showContributeModal, setShowContributeModal] = useState(false);
+                const [selectedProject, setSelectedProject] = useState(null);
+
+                const { isConnected, connectWallet } = useWallet();
+
+                const handleCreateProject = async (formData) => {
+                    if (!isConnected) {
+                        showNotification('请先连接钱包', 'error');
+                        return;
+                    }
+
+                    // 模拟MetaMask交易
+                    showNotification('正在处理交易...', 'success');
+                    setTimeout(() => {
+                        const newProject = {
+                            id: Date.now(),
+                            name: formData.name,
+                            description: formData.description,
+                            targetAmount: formData.targetAmount,
+                            raised: "0",
+                            deadline: Date.now() + formData.duration * 24 * 60 * 60 * 1000,
+                            creator: "0x" + Math.random().toString(16).substr(2, 8) + "...abcd",
+                            backers: 0
+                        };
+
+                        setProjects(prev => [newProject, ...prev]);
+                        setShowCreateModal(false);
+                        showNotification('项目创建成功！', 'success');
+                    }, 2000);
+                };
+
+                const handleContribute = async (amount) => {
+                    if (!isConnected) {
+                        showNotification('请先连接钱包', 'error');
+                        return;
+                    }
+
+                    showNotification('正在处理投资...', 'success');
+                    setTimeout(() => {
+                        setShowContributeModal(false);
+                        showNotification(`成功投资 ${amount} ETH！`, 'success');
+                    }, 2000);
+                };
+
+                const formatTimeLeft = (deadline) => {
+                    const timeLeft = deadline - Date.now();
+                    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                    return `${days} 天剩余`;
+                };
+
+                return React.createElement('div', {
+                    className: 'min-h-screen py-8'
+                }, React.createElement('div', {
+                    className: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'
+                }, 
+                // Header
+                React.createElement('div', {
+                    className: 'flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8'
+                }, React.createElement('div', null,
+                React.createElement('h1', {
+                    className: 'text-3xl lg:text-4xl font-bold text-white mb-2'
+                }, '隐私 ', React.createElement('span', { className: 'gradient-text' }, 'FundPad')),
+                React.createElement('p', {
+                    className: 'text-gray-400'
+                }, '使用FHE加密技术以完全隐私方式启动和支持项目')),
+                React.createElement('div', {
+                    className: 'flex items-center space-x-4 mt-4 lg:mt-0'
+                }, isConnected ? React.createElement('button', {
+                    onClick: () => setShowCreateModal(true),
+                    className: 'btn-primary flex items-center space-x-2'
+                }, React.createElement(Plus, { className: 'w-4 h-4' }), '创建项目') :
+                React.createElement('button', {
+                    onClick: connectWallet,
+                    className: 'btn-primary flex items-center space-x-2'
+                }, '连接钱包'))),
+
+                // Projects Grid
+                React.createElement('div', {
+                    className: 'grid md:grid-cols-2 lg:grid-cols-3 gap-6'
+                }, projects.map(project => React.createElement('div', {
+                    key: project.id,
+                    className: 'glass-card rounded-xl overflow-hidden project-card'
+                }, React.createElement('div', {
+                    className: 'p-6'
+                }, React.createElement('div', {
+                    className: 'flex justify-between items-start mb-4'
+                }, React.createElement('h3', {
+                    className: 'text-xl font-semibold text-white'
+                }, project.name),
+                React.createElement('div', {
+                    className: 'flex items-center space-x-1 text-xs bg-crypto-green/20 text-crypto-green px-2 py-1 rounded-full'
+                }, React.createElement('div', {
+                    className: 'w-2 h-2 bg-crypto-green rounded-full animate-pulse'
+                }), '活跃')),
+                
+                React.createElement('p', {
+                    className: 'text-gray-400 text-sm mb-4'
+                }, project.description),
+                
+                React.createElement('div', {
+                    className: 'grid grid-cols-2 gap-4 mb-4'
+                }, React.createElement('div', null,
+                React.createElement('div', {
+                    className: 'flex items-center space-x-2 mb-1'
+                }, React.createElement(Target, { className: 'w-4 h-4 text-crypto-blue' }),
+                React.createElement('span', { className: 'text-xs text-gray-400' }, '目标')),
+                React.createElement('div', {
+                    className: 'text-white font-semibold'
+                }, `${project.targetAmount} ETH`)),
+                React.createElement('div', null,
+                React.createElement('div', {
+                    className: 'flex items-center space-x-2 mb-1'
+                }, React.createElement(TrendingUp, { className: 'w-4 h-4 text-crypto-green' }),
+                React.createElement('span', { className: 'text-xs text-gray-400' }, '已筹集')),
+                React.createElement('div', {
+                    className: 'text-white font-semibold'
+                }, `${project.raised} ETH`))),
+                
+                React.createElement('div', {
+                    className: 'flex items-center justify-between text-sm text-gray-400 mb-4'
+                }, React.createElement('div', {
+                    className: 'flex items-center space-x-1'
+                }, React.createElement(Users, { className: 'w-4 h-4' }),
+                React.createElement('span', null, `${project.backers} 支持者`)),
+                React.createElement('div', {
+                    className: 'flex items-center space-x-1'
+                }, React.createElement(Calendar, { className: 'w-4 h-4' }),
+                React.createElement('span', null, formatTimeLeft(project.deadline)))),
+                
+                React.createElement('button', {
+                    onClick: () => {
+                        setSelectedProject(project);
+                        setShowContributeModal(true);
+                    },
+                    className: 'w-full btn-primary'
+                }, '支持项目'))))),
+
+                // 创建项目模态框
+                showCreateModal && React.createElement(CreateProjectModal, {
+                    onClose: () => setShowCreateModal(false),
+                    onCreate: handleCreateProject
+                }),
+
+                // 投资模态框
+                showContributeModal && selectedProject && React.createElement(ContributeModal, {
+                    project: selectedProject,
+                    onClose: () => setShowContributeModal(false),
+                    onContribute: handleContribute
+                })));
+            };
+
+            // DEX页面组件
+            const DEXPage = () => {
+                const [selectedPair, setSelectedPair] = useState({
+                    id: 'eth-usdt',
+                    symbolA: 'ETH',
+                    symbolB: 'USDT',
+                    price: '2,347.82',
+                    change24h: 2.34
+                });
+                const [orderType, setOrderType] = useState('buy');
+                const [amount, setAmount] = useState('');
+                const [price, setPrice] = useState('');
+                const [orders, setOrders] = useState([]);
+
+                const { isConnected, connectWallet } = useWallet();
+
+                const tradingPairs = [
+                    {
+                        id: 'eth-usdt',
+                        symbolA: 'ETH',
+                        symbolB: 'USDT',
+                        price: '2,347.82',
+                        change24h: 2.34
+                    },
+                    {
+                        id: 'eth-usdc',
+                        symbolA: 'ETH',
+                        symbolB: 'USDC',
+                        price: '2,346.91',
+                        change24h: 1.87
+                    },
+                    {
+                        id: 'eth-dai',
+                        symbolA: 'ETH',
+                        symbolB: 'DAI',
+                        price: '2,345.67',
+                        change24h: -0.45
+                    }
+                ];
+
+                const balances = {
+                    'ETH': '5.2341',
+                    'USDT': '12,456.78',
+                    'USDC': '8,903.21',
+                    'DAI': '3,456.89'
+                };
+
+                const handleCreateOrder = async () => {
+                    if (!isConnected) {
+                        showNotification('请先连接钱包', 'error');
+                        return;
+                    }
+
+                    if (!amount || !price) {
+                        showNotification('请填写完整信息', 'error');
+                        return;
+                    }
+
+                    showNotification('正在创建订单...', 'success');
+                    setTimeout(() => {
+                        const newOrder = {
+                            id: Date.now(),
+                            type: orderType,
+                            pair: `${selectedPair.symbolA}/${selectedPair.symbolB}`,
+                            amount,
+                            price,
+                            status: 'pending',
+                            timestamp: Date.now()
+                        };
+
+                        setOrders(prev => [newOrder, ...prev]);
+                        setAmount('');
+                        setPrice('');
+                        showNotification(`${orderType === 'buy' ? '买入' : '卖出'}订单创建成功！`, 'success');
+                    }, 2000);
+                };
+
+                return React.createElement('div', {
+                    className: 'min-h-screen py-8'
+                }, React.createElement('div', {
+                    className: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'
+                }, 
+                // Header
+                React.createElement('div', {
+                    className: 'flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8'
+                }, React.createElement('div', null,
+                React.createElement('h1', {
+                    className: 'text-3xl lg:text-4xl font-bold text-white mb-2'
+                }, '隐私 ', React.createElement('span', { className: 'gradient-text' }, 'DEX')),
+                React.createElement('p', {
+                    className: 'text-gray-400'
+                }, '使用加密订单簿进行完全隐私交易')),
+                React.createElement('div', {
+                    className: 'flex items-center space-x-4 mt-4 lg:mt-0'
+                }, !isConnected && React.createElement('button', {
+                    onClick: connectWallet,
+                    className: 'btn-primary flex items-center space-x-2'
+                }, '连接钱包'))),
+
+                React.createElement('div', {
+                    className: 'grid lg:grid-cols-12 gap-6'
+                }, 
+                // 交易对列表
+                React.createElement('div', {
+                    className: 'lg:col-span-3'
+                }, React.createElement('div', {
+                    className: 'glass-card rounded-xl p-6'
+                }, React.createElement('h2', {
+                    className: 'text-xl font-semibold text-white mb-4'
+                }, '交易对'),
+                React.createElement('div', {
+                    className: 'space-y-2'
+                }, tradingPairs.map(pair => React.createElement('div', {
+                    key: pair.id,
+                    onClick: () => setSelectedPair(pair),
+                    className: `p-3 rounded-lg cursor-pointer transition-all duration-300 ${
+                        selectedPair?.id === pair.id
+                            ? 'bg-crypto-blue/20 border border-crypto-blue/50'
+                            : 'hover:bg-white/5'
+                    }`
+                }, React.createElement('div', {
+                    className: 'flex justify-between items-center'
+                }, React.createElement('div', null,
+                React.createElement('div', {
+                    className: 'font-semibold text-white'
+                }, `${pair.symbolA}/${pair.symbolB}`),
+                React.createElement('div', {
+                    className: 'text-sm text-gray-400'
+                }, `$${pair.price}`)),
+                React.createElement('div', {
+                    className: `text-sm font-medium ${
+                        pair.change24h >= 0 ? 'text-crypto-green' : 'text-red-400'
+                    }`
+                }, `${pair.change24h >= 0 ? '+' : ''}${pair.change24h}%`)))))),
+
+                React.createElement('div', {
+                    className: 'glass-card rounded-xl p-6 mt-6'
+                }, React.createElement('h3', {
+                    className: 'text-lg font-semibold text-white mb-4'
+                }, '余额'),
+                React.createElement('div', {
+                    className: 'space-y-3'
+                }, Object.entries(balances).map(([token, balance]) => React.createElement('div', {
+                    key: token,
+                    className: 'flex justify-between items-center'
+                }, React.createElement('span', {
+                    className: 'text-gray-400'
+                }, token),
+                React.createElement('span', {
+                    className: 'text-white font-medium'
+                }, balance)))))),
+
+                // 交易界面
+                React.createElement('div', {
+                    className: 'lg:col-span-6'
+                }, React.createElement('div', {
+                    className: 'glass-card rounded-xl p-6 mb-6'
+                }, React.createElement('div', {
+                    className: 'flex items-center justify-between mb-6'
+                }, React.createElement('h2', {
+                    className: 'text-2xl font-bold text-white'
+                }, `${selectedPair.symbolA}/${selectedPair.symbolB}`),
+                React.createElement('div', {
+                    className: 'text-right'
+                }, React.createElement('span', {
+                    className: 'text-2xl font-bold text-white'
+                }, `$${selectedPair.price}`),
+                React.createElement('div', {
+                    className: `text-sm font-medium ${
+                        selectedPair.change24h >= 0 ? 'text-crypto-green' : 'text-red-400'
+                    }`
+                }, `${selectedPair.change24h >= 0 ? '+' : ''}${selectedPair.change24h}%`))),
+
+                // 买卖切换
+                React.createElement('div', {
+                    className: 'flex bg-gray-800/50 rounded-lg p-1 mb-6'
+                }, React.createElement('button', {
+                    onClick: () => setOrderType('buy'),
+                    className: `flex-1 py-2 px-4 rounded-md transition-all duration-300 ${
+                        orderType === 'buy'
+                            ? 'bg-crypto-green text-white'
+                            : 'text-gray-400 hover:text-white'
+                    }`
+                }, `买入 ${selectedPair.symbolA}`),
+                React.createElement('button', {
+                    onClick: () => setOrderType('sell'),
+                    className: `flex-1 py-2 px-4 rounded-md transition-all duration-300 ${
+                        orderType === 'sell'
+                            ? 'bg-red-500 text-white'
+                            : 'text-gray-400 hover:text-white'
+                    }`
+                }, `卖出 ${selectedPair.symbolA}`)),
+
+                // 订单表单
+                React.createElement('div', {
+                    className: 'grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'
+                }, React.createElement('div', null,
+                React.createElement('label', {
+                    className: 'block text-sm font-medium text-gray-300 mb-2'
+                }, `数量 (${selectedPair.symbolA})`),
+                React.createElement('input', {
+                    type: 'number',
+                    step: '0.001',
+                    className: 'input-field',
+                    value: amount,
+                    onChange: (e) => setAmount(e.target.value),
+                    placeholder: '0.000'
+                })),
+                React.createElement('div', null,
+                React.createElement('label', {
+                    className: 'block text-sm font-medium text-gray-300 mb-2'
+                }, `价格 (${selectedPair.symbolB})`),
+                React.createElement('input', {
+                    type: 'number',
+                    step: '0.01',
+                    className: 'input-field',
+                    value: price,
+                    onChange: (e) => setPrice(e.target.value),
+                    placeholder: '0.00'
+                }))),
+
+                // 总价显示
+                amount && price && React.createElement('div', {
+                    className: 'glass-card p-4 rounded-lg mb-6'
+                }, React.createElement('div', {
+                    className: 'flex justify-between items-center'
+                }, React.createElement('span', {
+                    className: 'text-gray-400'
+                }, '总计'),
+                React.createElement('span', {
+                    className: 'text-xl font-bold text-white'
+                }, `${(parseFloat(amount) * parseFloat(price)).toFixed(2)} ${selectedPair.symbolB}`)),
+                React.createElement('p', {
+                    className: 'text-xs text-gray-500 mt-2'
+                }, '🔒 您的订单将被加密并私密处理')),
+
+                React.createElement('button', {
+                    onClick: handleCreateOrder,
+                    disabled: !isConnected,
+                    className: `w-full py-3 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center ${
+                        orderType === 'buy'
+                            ? 'bg-crypto-green hover:bg-crypto-green/80'
+                            : 'bg-red-500 hover:bg-red-600'
+                    } text-white`
+                }, `${orderType === 'buy' ? '买入' : '卖出'} ${selectedPair.symbolA}`))),
+
+                // 订单历史
+                React.createElement('div', {
+                    className: 'lg:col-span-3'
+                }, React.createElement('div', {
+                    className: 'glass-card rounded-xl p-6'
+                }, React.createElement('h3', {
+                    className: 'text-lg font-semibold text-white mb-4'
+                }, '订单历史'),
+                React.createElement('div', {
+                    className: 'space-y-3 max-h-96 overflow-y-auto'
+                }, orders.length === 0 
+                    ? React.createElement('div', {
+                        className: 'text-center py-8'
+                    }, React.createElement('p', {
+                        className: 'text-gray-400'
+                    }, '暂无订单'),
+                    React.createElement('p', {
+                        className: 'text-sm text-gray-500'
+                    }, '您的交易历史将在这里显示'))
+                    : orders.map(order => React.createElement('div', {
+                        key: order.id,
+                        className: 'bg-white/5 rounded-lg p-3'
+                    }, React.createElement('div', {
+                        className: 'flex justify-between items-start mb-2'
+                    }, React.createElement('div', {
+                        className: 'flex items-center space-x-2'
+                    }, React.createElement('span', {
+                        className: `px-2 py-1 rounded text-xs font-medium ${
+                            order.type === 'buy' 
+                                ? 'bg-crypto-green/20 text-crypto-green' 
+                                : 'bg-red-500/20 text-red-400'
+                        }`
+                    }, order.type === 'buy' ? '买入' : '卖出'),
+                    React.createElement('span', {
+                        className: 'text-white text-sm'
+                    }, order.pair)),
+                    React.createElement('span', {
+                        className: 'text-xs px-2 py-1 rounded bg-yellow-500/20 text-yellow-400'
+                    }, '待处理')),
+                    React.createElement('div', {
+                        className: 'text-xs text-gray-400 space-y-1'
+                    }, React.createElement('div', null, `数量: ${order.amount}`),
+                    React.createElement('div', null, `价格: ${order.price}`),
+                    React.createElement('div', null, new Date(order.timestamp).toLocaleTimeString()))))))));
+            };
+
+            // 创建项目模态框
+            const CreateProjectModal = ({ onClose, onCreate }) => {
+                const [formData, setFormData] = useState({
+                    name: '',
+                    description: '',
+                    targetAmount: '',
+                    duration: 30
+                });
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    onCreate(formData);
+                };
+
+                return React.createElement('div', {
+                    className: 'modal-overlay',
+                    onClick: (e) => e.target === e.currentTarget && onClose()
+                }, React.createElement('div', {
+                    className: 'modal-content glass-card rounded-xl p-6'
+                }, React.createElement('h2', {
+                    className: 'text-2xl font-bold text-white mb-6'
+                }, '创建新项目'),
+                React.createElement('form', {
+                    onSubmit: handleSubmit,
+                    className: 'space-y-4'
+                }, React.createElement('div', null,
+                React.createElement('label', {
+                    className: 'block text-sm font-medium text-gray-300 mb-2'
+                }, '项目名称'),
+                React.createElement('input', {
+                    type: 'text',
+                    required: true,
+                    className: 'input-field',
+                    value: formData.name,
+                    onChange: (e) => setFormData({ ...formData, name: e.target.value }),
+                    placeholder: '输入项目名称'
+                })),
+                React.createElement('div', null,
+                React.createElement('label', {
+                    className: 'block text-sm font-medium text-gray-300 mb-2'
+                }, '项目描述'),
+                React.createElement('textarea', {
+                    required: true,
+                    rows: 3,
+                    className: 'input-field resize-none',
+                    value: formData.description,
+                    onChange: (e) => setFormData({ ...formData, description: e.target.value }),
+                    placeholder: '描述您的项目'
+                })),
+                React.createElement('div', null,
+                React.createElement('label', {
+                    className: 'block text-sm font-medium text-gray-300 mb-2'
+                }, '目标金额 (ETH)'),
+                React.createElement('input', {
+                    type: 'number',
+                    step: '0.01',
+                    min: '0.1',
+                    required: true,
+                    className: 'input-field',
+                    value: formData.targetAmount,
+                    onChange: (e) => setFormData({ ...formData, targetAmount: e.target.value }),
+                    placeholder: '0.00'
+                })),
+                React.createElement('div', null,
+                React.createElement('label', {
+                    className: 'block text-sm font-medium text-gray-300 mb-2'
+                }, '持续时间 (天)'),
+                React.createElement('select', {
+                    className: 'input-field',
+                    value: formData.duration,
+                    onChange: (e) => setFormData({ ...formData, duration: parseInt(e.target.value) })
+                }, React.createElement('option', { value: 7 }, '7天'),
+                React.createElement('option', { value: 14 }, '14天'),
+                React.createElement('option', { value: 30 }, '30天'),
+                React.createElement('option', { value: 60 }, '60天'),
+                React.createElement('option', { value: 90 }, '90天'))),
+                React.createElement('div', {
+                    className: 'flex space-x-3 pt-4'
+                }, React.createElement('button', {
+                    type: 'button',
+                    onClick: onClose,
+                    className: 'flex-1 btn-secondary'
+                }, '取消'),
+                React.createElement('button', {
+                    type: 'submit',
+                    className: 'flex-1 btn-primary'
+                }, '创建项目')))));
+            };
+
+            // 投资模态框
+            const ContributeModal = ({ project, onClose, onContribute }) => {
+                const [amount, setAmount] = useState('');
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    onContribute(amount);
+                };
+
+                return React.createElement('div', {
+                    className: 'modal-overlay',
+                    onClick: (e) => e.target === e.currentTarget && onClose()
+                }, React.createElement('div', {
+                    className: 'modal-content glass-card rounded-xl p-6'
+                }, React.createElement('h2', {
+                    className: 'text-2xl font-bold text-white mb-2'
+                }, '支持项目'),
+                React.createElement('p', {
+                    className: 'text-gray-400 mb-6'
+                }, project.name),
+                React.createElement('form', {
+                    onSubmit: handleSubmit,
+                    className: 'space-y-6'
+                }, React.createElement('div', null,
+                React.createElement('label', {
+                    className: 'block text-sm font-medium text-gray-300 mb-2'
+                }, '投资金额 (ETH)'),
+                React.createElement('input', {
+                    type: 'number',
+                    step: '0.001',
+                    min: '0.001',
+                    required: true,
+                    className: 'input-field text-xl',
+                    value: amount,
+                    onChange: (e) => setAmount(e.target.value),
+                    placeholder: '0.000'
+                }),
+                React.createElement('p', {
+                    className: 'text-xs text-gray-500 mt-2'
+                }, '🔒 您的投资金额将被加密并保持隐私')),
+                React.createElement('div', {
+                    className: 'glass-card p-4 rounded-lg'
+                }, React.createElement('h4', {
+                    className: 'text-sm font-medium text-white mb-2'
+                }, '项目详情'),
+                React.createElement('div', {
+                    className: 'space-y-2 text-sm'
+                }, React.createElement('div', {
+                    className: 'flex justify-between'
+                }, React.createElement('span', {
+                    className: 'text-gray-400'
+                }, '创建者:'),
+                React.createElement('span', {
+                    className: 'text-white'
+                }, project.creator)),
+                React.createElement('div', {
+                    className: 'flex justify-between'
+                }, React.createElement('span', {
+                    className: 'text-gray-400'
+                }, '目标:'),
+                React.createElement('span', {
+                    className: 'text-white'
+                }, `${project.targetAmount} ETH`)))),
+                React.createElement('div', {
+                    className: 'flex space-x-3'
+                }, React.createElement('button', {
+                    type: 'button',
+                    onClick: onClose,
+                    className: 'flex-1 btn-secondary'
+                }, '取消'),
+                React.createElement('button', {
+                    type: 'submit',
+                    className: 'flex-1 btn-primary'
+                }, '投资')))));
+            };
+
+            // 主应用组件
+            const App = () => {
+                return React.createElement(WalletProvider, null,
+                    React.createElement(BrowserRouter, null,
+                        React.createElement('div', {
+                            className: 'App min-h-screen bg-gradient-to-br from-crypto-darker via-crypto-dark to-gray-900'
+                        }, React.createElement('div', {
+                            className: 'crypto-pattern min-h-screen'
+                        }, React.createElement(Navigation),
+                        React.createElement(Routes, null,
+                            React.createElement(Route, { path: '/', element: React.createElement(HomePage) }),
+                            React.createElement(Route, { path: '/fundpad', element: React.createElement(FundPadPage) }),
+                            React.createElement(Route, { path: '/dex', element: React.createElement(DEXPage) }),
+                            React.createElement(Route, { path: '*', element: React.createElement(Navigate, { to: '/', replace: true }) })
+                        )))));
+            };
+
+            // 渲染应用
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(React.createElement(App));
+            
+            console.log('✅ DeFi Platform 已成功启动！');
+            showNotification('🚀 DeFi Platform 已成功加载！', 'success');
+        }
+    </script>
+</body>
+</html>

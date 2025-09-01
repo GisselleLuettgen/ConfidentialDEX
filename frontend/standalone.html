@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeFi Platform - 独立版本</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #3B82F6, #8B5CF6);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 12px 24px;
+            margin: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            padding: 12px;
+            margin: 10px 0;
+            width: 200px;
+        }
+
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .success { 
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+        }
+
+        .error { 
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+        }
+
+        .info { 
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+        }
+
+        .project {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center; font-size: 2.5em; margin-bottom: 30px;">
+            🚀 <span style="background: linear-gradient(45deg, #3B82F6, #8B5CF6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">DeFi Platform</span>
+        </h1>
+
+        <div class="card">
+            <h2>💎 投资测试区</h2>
+            <p>测试MetaMask投资交互功能</p>
+            
+            <div>
+                <button class="btn" onclick="connectWallet()">🔗 连接MetaMask钱包</button>
+                <button class="btn btn-secondary" onclick="testInvestment()">💰 测试投资功能</button>
+            </div>
+            
+            <div id="wallet-status" class="status info">
+                钱包状态: 未连接
+            </div>
+
+            <div>
+                <h3>快速投资测试:</h3>
+                <input type="number" id="invest-amount" class="input" placeholder="投资金额 (ETH)" value="0.001" step="0.001">
+                <button class="btn" onclick="quickInvest()">⚡ 快速投资</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📈 DEX 交易测试区</h2>
+            <div>
+                <input type="number" id="trade-amount" class="input" placeholder="数量" value="100" step="0.001">
+                <input type="number" id="trade-price" class="input" placeholder="价格" value="0.0004" step="0.0001">
+                <button class="btn" onclick="testTrade('buy')">🚀 测试买入</button>
+                <button class="btn btn-secondary" onclick="testTrade('sell')">📉 测试卖出</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📜 模拟项目列表</h2>
+            <div class="project">
+                <h3>DeFi Privacy Tools</h3>
+                <p>使用零知识证明构建下一代DeFi隐私工具</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>目标: 100 ETH | 已筹集: 45.7 ETH</span>
+                    <button class="btn" onclick="investInProject('project1')">💎 支持项目</button>
+                </div>
+            </div>
+            
+            <div class="project">
+                <h3>Confidential NFT Marketplace</h3>
+                <p>支持隐私价格和私人交易的NFT市场</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>目标: 250 ETH | 已筹集: 182.3 ETH</span>
+                    <button class="btn" onclick="investInProject('project2')">💎 支持项目</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let provider = null;
+        let signer = null;
+        let account = null;
+
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('wallet-status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        async function connectWallet() {
+            console.log('Connecting wallet...');
+            try {
+                if (!window.ethereum) {
+                    updateStatus('❌ MetaMask未安装！请安装MetaMask浏览器扩展', 'error');
+                    return;
+                }
+
+                const accounts = await window.ethereum.request({
+                    method: 'eth_requestAccounts',
+                });
+
+                if (accounts.length > 0) {
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+                    account = accounts[0];
+
+                    const balance = await provider.getBalance(account);
+                    const balanceEth = ethers.utils.formatEther(balance);
+
+                    updateStatus(`✅ 钱包已连接: ${account.slice(0, 6)}...${account.slice(-4)} | 余额: ${parseFloat(balanceEth).toFixed(4)} ETH`, 'success');
+                }
+            } catch (error) {
+                console.error('Wallet connection error:', error);
+                updateStatus(`❌ 连接失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testInvestment() {
+            console.log('Testing investment...');
+            if (!signer) {
+                updateStatus('❌ 请先连接钱包', 'error');
+                return;
+            }
+
+            try {
+                updateStatus('🦊 正在打开MetaMask，请确认交易...', 'info');
+                
+                const tx = await signer.sendTransaction({
+                    to: '0x742d35Cc6634C0532925a3b8D4b8A8FD7E5Da4E4',
+                    value: ethers.utils.parseEther('0.001'),
+                    data: ethers.utils.toUtf8Bytes('TEST_INVESTMENT')
+                });
+
+                updateStatus(`🎉 投资测试成功! 交易哈希: ${tx.hash.slice(0, 10)}...`, 'success');
+                console.log('Investment test transaction:', tx);
+            } catch (error) {
+                console.error('Investment test error:', error);
+                if (error.code === 4001) {
+                    updateStatus('⚠️ 交易被用户取消', 'error');
+                } else {
+                    updateStatus(`❌ 投资测试失败: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function quickInvest() {
+            const amount = document.getElementById('invest-amount').value;
+            if (!amount || parseFloat(amount) <= 0) {
+                updateStatus('❌ 请输入有效的投资金额', 'error');
+                return;
+            }
+
+            if (!signer) {
+                updateStatus('❌ 请先连接钱包', 'error');
+                return;
+            }
+
+            try {
+                updateStatus(`🦊 正在投资 ${amount} ETH，请在MetaMask中确认...`, 'info');
+                
+                const tx = await signer.sendTransaction({
+                    to: '0x742d35Cc6634C0532925a3b8D4b8A8FD7E5Da4E4',
+                    value: ethers.utils.parseEther(amount),
+                    data: ethers.utils.toUtf8Bytes(`INVEST:${amount}`)
+                });
+
+                updateStatus(`🎉 投资成功! 投资金额: ${amount} ETH | 交易: ${tx.hash.slice(0, 10)}...`, 'success');
+                console.log('Quick investment transaction:', tx);
+            } catch (error) {
+                console.error('Quick investment error:', error);
+                if (error.code === 4001) {
+                    updateStatus('⚠️ 投资被用户取消', 'error');
+                } else {
+                    updateStatus(`❌ 投资失败: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function testTrade(type) {
+            const amount = document.getElementById('trade-amount').value;
+            const price = document.getElementById('trade-price').value;
+            
+            if (!amount || !price) {
+                updateStatus('❌ 请填写交易数量和价格', 'error');
+                return;
+            }
+
+            if (!signer) {
+                updateStatus('❌ 请先连接钱包', 'error');
+                return;
+            }
+
+            try {
+                const totalValue = parseFloat(amount) * parseFloat(price);
+                updateStatus(`🦊 正在${type === 'buy' ? '买入' : '卖出'}，请在MetaMask中确认...`, 'info');
+                
+                const tx = await signer.sendTransaction({
+                    to: '0x742d35Cc6634C0532925a3b8D4b8A8FD7E5Da4E4',
+                    value: ethers.utils.parseEther(type === 'buy' ? totalValue.toString() : '0.002'),
+                    data: ethers.utils.toUtf8Bytes(`${type.toUpperCase()}:${amount}:${price}`)
+                });
+
+                updateStatus(`🎉 ${type === 'buy' ? '买入' : '卖出'}成功! 交易: ${tx.hash.slice(0, 10)}...`, 'success');
+                console.log('Trade transaction:', tx);
+            } catch (error) {
+                console.error('Trade error:', error);
+                if (error.code === 4001) {
+                    updateStatus('⚠️ 交易被用户取消', 'error');
+                } else {
+                    updateStatus(`❌ 交易失败: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function investInProject(projectId) {
+            const amount = prompt('请输入投资金额 (ETH):', '0.01');
+            if (!amount || parseFloat(amount) <= 0) {
+                return;
+            }
+
+            if (!signer) {
+                updateStatus('❌ 请先连接钱包', 'error');
+                return;
+            }
+
+            try {
+                updateStatus(`🦊 正在投资项目 ${projectId}，金额: ${amount} ETH...`, 'info');
+                
+                const tx = await signer.sendTransaction({
+                    to: '0x742d35Cc6634C0532925a3b8D4b8A8FD7E5Da4E4',
+                    value: ethers.utils.parseEther(amount),
+                    data: ethers.utils.toUtf8Bytes(`INVEST:${projectId}:${amount}`)
+                });
+
+                updateStatus(`🎉 项目投资成功! 项目: ${projectId} | 金额: ${amount} ETH | 交易: ${tx.hash.slice(0, 10)}...`, 'success');
+                console.log('Project investment transaction:', tx);
+            } catch (error) {
+                console.error('Project investment error:', error);
+                if (error.code === 4001) {
+                    updateStatus('⚠️ 投资被用户取消', 'error');
+                } else {
+                    updateStatus(`❌ 投资失败: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // 页面加载时自动检查钱包连接
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DeFi Platform 独立版本已加载');
+            updateStatus('🔗 请连接MetaMask钱包开始测试', 'info');
+        });
+    </script>
+</body>
+</html>

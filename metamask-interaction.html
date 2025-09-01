@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaMask 真实交互演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #4A90E2;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        .wallet-info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #4A90E2;
+        }
+
+        .address {
+            word-break: break-all;
+            font-family: monospace;
+            background: #e9ecef;
+            padding: 0.5rem;
+            border-radius: 6px;
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .balance {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #28a745;
+            margin: 0.5rem 0;
+        }
+
+        .network {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #4A90E2, #357ABD);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .send-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #fff5f5;
+            border-radius: 12px;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .input-group {
+            margin: 1rem 0;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #4A90E2;
+        }
+
+        .status {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b3d9ff;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4A90E2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tx-hash {
+            font-family: monospace;
+            font-size: 0.8rem;
+            word-break: break-all;
+            background: #f8f9fa;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🦊 MetaMask 真实交互</h1>
+        
+        <div id="notConnected">
+            <p style="margin-bottom: 1.5rem;">请连接您的 MetaMask 钱包以开始使用</p>
+            <button class="btn" id="connectBtn">连接 MetaMask</button>
+        </div>
+
+        <div id="connected" class="hidden">
+            <div class="wallet-info">
+                <h3>钱包信息</h3>
+                <div class="address" id="walletAddress"></div>
+                <div class="balance" id="walletBalance">0 ETH</div>
+                <div class="network" id="networkInfo">网络: 未知</div>
+            </div>
+
+            <button class="btn" id="refreshBtn">刷新余额</button>
+            <button class="btn" id="disconnectBtn">断开连接</button>
+
+            <div class="send-section">
+                <h3>发送交易</h3>
+                <div class="input-group">
+                    <label for="toAddress">接收地址:</label>
+                    <input type="text" id="toAddress" placeholder="0x..." />
+                </div>
+                <div class="input-group">
+                    <label for="amount">金额 (ETH):</label>
+                    <input type="number" id="amount" placeholder="0.001" step="0.001" min="0" />
+                </div>
+                <button class="btn" id="sendBtn">发送交易</button>
+            </div>
+        </div>
+
+        <div id="status" class="hidden"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.1/dist/ethers.umd.min.js"></script>
+    <script>
+        let provider = null;
+        let signer = null;
+        let userAccount = null;
+
+        const elements = {
+            connectBtn: document.getElementById('connectBtn'),
+            disconnectBtn: document.getElementById('disconnectBtn'),
+            refreshBtn: document.getElementById('refreshBtn'),
+            sendBtn: document.getElementById('sendBtn'),
+            notConnected: document.getElementById('notConnected'),
+            connected: document.getElementById('connected'),
+            status: document.getElementById('status'),
+            walletAddress: document.getElementById('walletAddress'),
+            walletBalance: document.getElementById('walletBalance'),
+            networkInfo: document.getElementById('networkInfo'),
+            toAddress: document.getElementById('toAddress'),
+            amount: document.getElementById('amount')
+        };
+
+        // 检查 MetaMask 是否可用
+        function checkMetaMask() {
+            if (typeof window.ethereum !== 'undefined') {
+                console.log('MetaMask 已安装');
+                return true;
+            } else {
+                showStatus('请先安装 MetaMask 钱包扩展程序', 'error');
+                return false;
+            }
+        }
+
+        // 显示状态信息
+        function showStatus(message, type = 'info') {
+            elements.status.className = `status ${type}`;
+            elements.status.textContent = message;
+            elements.status.classList.remove('hidden');
+            
+            if (type === 'success' || type === 'info') {
+                setTimeout(() => {
+                    elements.status.classList.add('hidden');
+                }, 5000);
+            }
+        }
+
+        // 连接 MetaMask
+        async function connectWallet() {
+            if (!checkMetaMask()) return;
+
+            try {
+                showStatus('正在连接 MetaMask...', 'info');
+                
+                // 请求账户访问权限
+                const accounts = await window.ethereum.request({
+                    method: 'eth_requestAccounts'
+                });
+
+                if (accounts.length === 0) {
+                    showStatus('未选择任何账户', 'error');
+                    return;
+                }
+
+                // 初始化 ethers provider 和 signer
+                provider = new ethers.BrowserProvider(window.ethereum);
+                signer = await provider.getSigner();
+                userAccount = accounts[0];
+
+                await updateWalletInfo();
+                
+                elements.notConnected.classList.add('hidden');
+                elements.connected.classList.remove('hidden');
+                
+                showStatus('成功连接到 MetaMask!', 'success');
+
+                // 监听账户变化
+                window.ethereum.on('accountsChanged', handleAccountsChanged);
+                window.ethereum.on('chainChanged', handleChainChanged);
+
+            } catch (error) {
+                console.error('连接失败:', error);
+                showStatus(`连接失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 更新钱包信息
+        async function updateWalletInfo() {
+            try {
+                if (!signer) return;
+
+                // 获取账户地址
+                const address = await signer.getAddress();
+                elements.walletAddress.textContent = address;
+
+                // 获取余额
+                const balance = await provider.getBalance(address);
+                const balanceInEth = ethers.formatEther(balance);
+                elements.walletBalance.textContent = `${parseFloat(balanceInEth).toFixed(4)} ETH`;
+
+                // 获取网络信息
+                const network = await provider.getNetwork();
+                elements.networkInfo.textContent = `网络: ${network.name} (Chain ID: ${network.chainId})`;
+
+            } catch (error) {
+                console.error('更新钱包信息失败:', error);
+                showStatus(`更新信息失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 发送交易
+        async function sendTransaction() {
+            try {
+                const toAddress = elements.toAddress.value.trim();
+                const amount = elements.amount.value.trim();
+
+                if (!toAddress || !amount) {
+                    showStatus('请填写完整的接收地址和金额', 'error');
+                    return;
+                }
+
+                if (!ethers.isAddress(toAddress)) {
+                    showStatus('无效的以太坊地址', 'error');
+                    return;
+                }
+
+                const value = ethers.parseEther(amount);
+                
+                showStatus('正在发送交易...', 'info');
+                elements.sendBtn.disabled = true;
+                elements.sendBtn.innerHTML = '<div class="loading"></div> 发送中...';
+
+                const tx = await signer.sendTransaction({
+                    to: toAddress,
+                    value: value
+                });
+
+                showStatus(`交易已提交，等待确认...`, 'info');
+                
+                // 等待交易确认
+                const receipt = await tx.wait();
+                
+                if (receipt.status === 1) {
+                    showStatus(`交易成功！`, 'success');
+                    const txDiv = document.createElement('div');
+                    txDiv.className = 'tx-hash';
+                    txDiv.innerHTML = `交易哈希: <a href="https://etherscan.io/tx/${receipt.hash}" target="_blank">${receipt.hash}</a>`;
+                    elements.status.appendChild(txDiv);
+                    
+                    // 清空输入框
+                    elements.toAddress.value = '';
+                    elements.amount.value = '';
+                    
+                    // 更新余额
+                    await updateWalletInfo();
+                } else {
+                    showStatus('交易失败', 'error');
+                }
+
+            } catch (error) {
+                console.error('发送交易失败:', error);
+                let errorMessage = '交易失败';
+                
+                if (error.code === 'INSUFFICIENT_FUNDS') {
+                    errorMessage = '余额不足';
+                } else if (error.code === 'USER_REJECTED') {
+                    errorMessage = '用户取消了交易';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                showStatus(errorMessage, 'error');
+            } finally {
+                elements.sendBtn.disabled = false;
+                elements.sendBtn.textContent = '发送交易';
+            }
+        }
+
+        // 断开连接
+        function disconnectWallet() {
+            provider = null;
+            signer = null;
+            userAccount = null;
+            
+            elements.connected.classList.add('hidden');
+            elements.notConnected.classList.remove('hidden');
+            elements.status.classList.add('hidden');
+            
+            // 移除事件监听器
+            if (window.ethereum && window.ethereum.removeListener) {
+                window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+                window.ethereum.removeListener('chainChanged', handleChainChanged);
+            }
+            
+            showStatus('已断开连接', 'info');
+        }
+
+        // 处理账户变化
+        function handleAccountsChanged(accounts) {
+            if (accounts.length === 0) {
+                disconnectWallet();
+            } else if (accounts[0] !== userAccount) {
+                connectWallet();
+            }
+        }
+
+        // 处理网络变化
+        function handleChainChanged(chainId) {
+            window.location.reload();
+        }
+
+        // 绑定事件监听器
+        elements.connectBtn.addEventListener('click', connectWallet);
+        elements.disconnectBtn.addEventListener('click', disconnectWallet);
+        elements.refreshBtn.addEventListener('click', updateWalletInfo);
+        elements.sendBtn.addEventListener('click', sendTransaction);
+
+        // 页面加载时检查是否已连接
+        window.addEventListener('load', async () => {
+            if (checkMetaMask()) {
+                try {
+                    const accounts = await window.ethereum.request({
+                        method: 'eth_accounts'
+                    });
+                    
+                    if (accounts.length > 0) {
+                        provider = new ethers.BrowserProvider(window.ethereum);
+                        signer = await provider.getSigner();
+                        userAccount = accounts[0];
+                        
+                        await updateWalletInfo();
+                        
+                        elements.notConnected.classList.add('hidden');
+                        elements.connected.classList.remove('hidden');
+                        
+                        window.ethereum.on('accountsChanged', handleAccountsChanged);
+                        window.ethereum.on('chainChanged', handleChainChanged);
+                    }
+                } catch (error) {
+                    console.error('检查连接状态失败:', error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
